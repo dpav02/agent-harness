@@ -1,0 +1,53 @@
+---
+description: Docker — multi-stage builds, compose, security; apply when editing Dockerfiles or compose files
+globs: "**/Dockerfile*, **/docker-compose*.yml, **/compose.y*ml, **/.dockerignore"
+alwaysApply: false
+---
+
+# Context: defer to repo
+
+Extend existing Docker patterns in the project. Match base images, compose service names, and network conventions (`spark-net` in spark_ops).
+
+# Multi-stage builds
+
+- **Builder stage:** compile, install deps, run tests if part of build pipeline.
+- **Runtime stage:** copy **artifacts only** — no compilers, source trees, test files, or devDependencies.
+- Name stages (`AS builder`, `AS runner`); use `COPY --from=builder`.
+
+# Base images and versions
+
+- **Pin versions** — match project lockfile (`node:24-alpine`, `python:3.13-slim`).
+- Never `latest` in production Dockerfiles.
+- Prefer slim/distroless runtime images when compatible.
+
+# Security
+
+- **Non-root:** create app user; set `USER` **after** install steps that need root.
+- Do not bind to a fixed UID unless the orchestrator requires it.
+- Secrets via BuildKit secrets or runtime env — **not** `ARG` for tokens.
+- Read-only root filesystem when the app supports it.
+
+# Build context
+
+- Maintain **`.dockerignore`**: `.git`, `node_modules`, `__pycache__`, `.env`, tests, docs.
+- Copy lockfiles **before** source for layer cache: `package-lock.json`, `uv.lock`, `requirements.txt`.
+- Use `npm ci` / `uv sync --frozen` for reproducible installs.
+
+# Compose
+
+- **`healthcheck`** on long-running API/worker services.
+- Explicit `depends_on` with `condition: service_healthy` when startup order matters.
+- Named volumes for persistent data; bind mounts for dev only unless repo convention.
+- **spark_ops:** shared external network `spark-net`; respect port registry in repo.
+
+# GPU / NVIDIA
+
+- GPU runtime (`nvidia`) only when the project requires it — not by default.
+
+# Anti-patterns
+
+- `COPY . .` in the final runtime stage.
+- Single-stage fat images with build tools in prod.
+- Running as root in production containers.
+- No healthcheck on services that other services depend on.
+- Secrets in `ARG` or baked into image layers.

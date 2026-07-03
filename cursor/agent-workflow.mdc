@@ -1,0 +1,44 @@
+---
+description: Global agent workflow — execute, verify with evidence, debug systematically, communicate clearly; aligns with Cursor agent best practices
+alwaysApply: true
+---
+
+# Execution
+
+- **Real environment:** Run commands and fix issues here; do not only tell the user what to run. Retry with a different approach if something fails.
+- **Read before acting:** Open relevant files and confirm actual state; do not assume file contents or test output from memory.
+- **Scope:** Change only what the task requires. No drive-by refactors or unrelated files. Match existing naming, types, imports, and doc style.
+
+# Verification before “done”
+
+Any claim of success needs **fresh evidence** from this session:
+
+1. Name the claim (e.g. “tests pass,” “build OK,” “bug fixed”).
+2. Name the command or check that proves it.
+3. **Run it now**; read exit code and output.
+4. Report precisely, e.g. `Ran npm test -- path/to.test.ts: 12 passed.`  
+   If you did not run something, say so explicitly (e.g. missing credentials).
+
+**Traps:** stale output from earlier runs; lint green ≠ tests green; “looks fixed” without re-running the failing path.
+
+# Debugging
+
+- Reproduce, then gather evidence (stack trace, smallest failing command). Compare with a **working** path in the same codebase.
+- Form **one** hypothesis; fix the source, not the symptom. If multiple fixes fail, stop stacking patches and re-read architecture.
+- Prefer regression tests or a minimal repro script before speculative edits.
+
+# CI and PR honesty
+
+- Do not claim “CI green” or “ready to merge” without running the relevant **local** checks when the environment allows.
+- If CI failed remotely, use logs to target the real failure — do not hand-wave.
+
+# Context hygiene (Cursor)
+
+- Prefer letting the agent **find** files via search when you do not have exact paths; avoid stuffing unrelated files into context.
+- Start a **new conversation** when switching tasks, when the agent loops on the same mistake, or after long threads — summarized context can add noise.
+
+# Communication
+
+- Use Cursor code citations (`startLine:endLine:path`) for existing code; opening fence on its own line.
+- Prefer full URLs and full file paths when linking.
+- Clear sentences; no filler or engagement-style closings.

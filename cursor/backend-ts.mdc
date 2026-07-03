@@ -1,0 +1,69 @@
+---
+description: TypeScript/Node backend — Lambda, SST, API handlers, DynamoDB; apply when editing server-side TS (not UI)
+globs: "**/packages/api/**/*.ts, **/apps/server/**/*.ts, **/infra/**/*.ts, **/sst.config.ts"
+alwaysApply: false
+---
+
+# Context: defer to repo
+
+Extend the project's Lambda/SST/Express patterns. REST rules live in `backend.mdc` — match project error envelopes here.
+
+# TypeScript discipline
+
+- **Strict mode**; no `any` — use `unknown` and narrow.
+- **Static imports only** — no dynamic `import()`.
+- **Naming:** `kebab-case.ts` files; `PascalCase` types/interfaces; `camelCase` functions; `SCREAMING_SNAKE_CASE` constants.
+
+# Lambda handlers
+
+- Thin: **validate → service → response**.
+- Structured envelope per repo — e.g. `{ data: T }` or `{ error, code, details }`.
+- Never leak stack traces in production responses.
+- Timeout and memory sized from repo/IaC config.
+- **Idempotent** for SQS/EventBridge/S3 triggers.
+
+# API conventions
+
+- REST under `/api/v1/` when repo uses that prefix.
+- camelCase JSON when repo uses it (jobpriced).
+- Validate at boundary (Zod/schema); correct HTTP status codes.
+- Defer to `backend.mdc` for REST design, pagination, idempotency headers.
+
+# DynamoDB
+
+- **PascalCase** table names when repo uses it (Organizations, Users, …).
+- Single-table per bounded context only when repo already uses that pattern.
+- Avoid hot partitions; design keys from access patterns.
+- Separate high-churn items (Messages) from large parent items when repo does.
+
+# SST / Ion / IaC
+
+- `npm run dev:api` for local; `npm run deploy` for prod — match repo scripts.
+- **AWS profile** from repo (`AWS_PROFILE=jobpriced`).
+- Review `sst diff` before deploy.
+
+# Bedrock and prompts (when repo uses it)
+
+- Prompts as pure `(context) => string` functions in `prompts/` — no hardcoded model IDs in handlers.
+- Structured output schemas: `additionalProperties: false` on every object.
+- Defer to project Bedrock runtime docs.
+
+# Error handling
+
+- Custom error classes extending `Error`; include `retryable` when clients should retry.
+- `withRetry` for external services — full backoff/jitter/idempotency rules in `resilience.mdc`.
+- Sentry capture at handler boundary — full patterns in `observability.mdc`.
+- User-facing vs internal error messages separated.
+
+# Testing
+
+- Follow **`testing.mdc`** for TDD and test quality.
+- Mirror source structure in tests; mock AWS services in unit tests.
+
+# Barrel exports
+
+- `index.ts` per directory when repo uses barrel pattern — match existing style.
+
+# Defer to repo
+
+SST vs Serverless Framework vs raw CDK; Express vs Hono — use what's already there.

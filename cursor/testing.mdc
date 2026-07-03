@@ -1,0 +1,89 @@
+---
+description: TDD and test quality — red-green-refactor, behavior not implementation, meaningful assertions, ponytail lens
+globs: "**/*.{test,spec}.{ts,tsx,js,jsx}, **/__tests__/**, **/tests/**, **/test_*.py, **/*_test.py"
+alwaysApply: true
+---
+
+# When to TDD
+
+- **New behavior** — write failing test first when the repo uses tests.
+- **Bug fixes** — regression test that reproduces the bug before the fix.
+- **Refactors** — characterization tests on public behavior before changing internals.
+- **Defer** (ponytail): pure config, static content, low-risk glue — integration test may suffice; don't add coverage theater.
+
+# Ponytail lens for tests
+
+- **YAGNI:** don't test what types/compiler already guarantee (getters with no logic, re-exported constants).
+- **One high-signal test** beats five trivial tests.
+- **Trivial one-liners:** optional self-check at most — not a test suite ceremony.
+- **Non-trivial logic:** must leave a test that fails if behavior breaks.
+- Prefer one integration test over a mock maze when cheaper and clearer.
+
+# Red-Green-Refactor (strict)
+
+1. **RED** — run the new/changed test; confirm it fails for **missing or wrong behavior**.
+2. **Invalid RED** — ImportError, ModuleNotFoundError, syntax error, wrong mock setup, typo. Fix setup or stub minimal interface so failure is **behavioral**.
+3. **GREEN** — minimal code to pass; no speculative features or drive-by refactors.
+4. **REFACTOR** — only while green; improve names, remove duplication; tests stay green.
+
+**Bug fix flow:** watch RED reproduce bug → fix → watch GREEN.
+
+# What makes a damn good test
+
+- Tests **observable behavior** at the public surface: API response, return value, rendered UI text/role, DB state.
+- **Name reads like a spec:** `rejects_checkout_when_inventory_zero` — not `test_checkout_1` or `test_function_works`.
+- **One behavior per test** — split names that contain "and".
+- **AAA:** Arrange–Act–Assert; no loops, conditionals, or switches in test bodies.
+- **Explicit assertions** with expected values — not tautologies.
+- **DAMP > DRY** in tests — clarity beats aggressive shared abstractions that hide intent.
+- **Edge cases + errors** on high-risk paths: auth, payments, permissions, data integrity.
+
+# Anti-patterns (reject)
+
+- `assert True`, `expect(1).toBe(1)`, `assert 1 == 1` — tautological or meaningless.
+- Testing that a **mock exists** or was created — proves nothing about product behavior.
+- Asserting **private methods**, internal call order, or implementation details — breaks on harmless refactors.
+- **Mock setup longer than test body**; >2 mocked collaborators → design smell — simplify code or use integration test.
+- **Snapshot as only assertion** without understanding what changed.
+- **`sleep()`** for timing; shared mutable state between tests.
+- **Happy path only** on critical business logic.
+- Tests that fail when you refactor internals but **user-visible behavior unchanged** — test is wrong.
+
+# Mocking
+
+- Mock **external boundaries only:** HTTP, DB, queue, filesystem, clock, cloud SDK.
+- Patch at **use site**, not definition site.
+- Prefer fakes, fixtures, or real lightweight collaborators over deep mock trees.
+- Every mock: **assert it mattered** (called with expected args) **or remove it**.
+- If you must mock everything, code is too coupled — simplify before adding more mocks.
+
+# Python (pytest)
+
+- Match repo layout and conventions (`uv run pytest`, `tests/`).
+- **Parametrize** boundary values (empty, max, invalid).
+- Stub minimal interface so RED fails on assertion, not import.
+- **Regression test per bug** when project uses tests.
+- Hot list endpoints: query-count assertion when repo supports it (`assertNumQueries`, SQL echo).
+
+# TypeScript (Vitest / Jest)
+
+- Mirror source structure in tests.
+- Mock AWS/cloud SDK in unit tests; real services in integration tests only.
+- **UI:** Testing Library — `getByRole`, `getByLabelText`, `getByText` first; not CSS selectors or DOM traversal.
+- Assert **user-visible outcomes** — not component state or private instance fields.
+
+# Frontend component tests
+
+- Drive UI like a user; assert visible text, roles, disabled/enabled state.
+- Respect **`prefers-reduced-motion`** in interaction tests when animations gate behavior.
+- Full component/DOM rules: `frontend.mdc` for craft; this file for **test quality**.
+
+# Done checklist
+
+Before claiming a behavior change is complete:
+
+- [ ] Watched RED for the **expected business reason** (not import/setup error)
+- [ ] Watched GREEN on targeted test
+- [ ] Ran nearby suite; reported exit code + summary
+- [ ] No new trivial or tautological tests added for coverage theater
+- [ ] Refactor-only changes: existing behavior tests still green

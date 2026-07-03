@@ -1,0 +1,35 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "workflow-agents.md",
+    "testing-agents.md",
+    "backend-agents.md",
+    "database-agents.md",
+    "aws-agents.md",
+    "docker-agents.md",
+    "messaging-agents.md",
+    "backend-ts-agents.md",
+    "observability-agents.md",
+    "resilience-agents.md",
+    "frontend-agents.md"
+  ],
+  "provider": {
+    "ornith": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ornith (DGX Spark)",
+      "options": {
+        "baseURL": "http://edgexpert-84c0:8080/v1",
+        "apiKey": "local"
+      },
+      "models": {
+        "ornith": {
+          "name": "Ornith 1.0 35B",
+          "limit": {
+            "context": 262144,
+            "output": 8192
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,153 @@
+---
+description: Backend engineering — Python APIs, REST design, auth, endpoint design, ops; apply when editing server-side Python or API handlers
+globs: "**/*.py, **/pyproject.toml, **/requirements*.txt, **/Dockerfile, **/docker-compose*.yml, **/shop.yaml"
+alwaysApply: false
+---
+
+# Context: greenfield vs existing
+
+- **Existing codebase:** Extend the project’s routes, schemas, services, and error envelopes. Do not introduce a new framework, ORM, or API style unprompted.
+- **Greenfield:** Confirm auth model, API versioning, and error format before endpoint one — or adopt RFC 9457 + `/api/v1/` unless the user specifies otherwise.
+
+# Read the repo first
+
+Skim `README`, `AGENTS.md`, `pyproject.toml`, and existing route/handler layout before adding endpoints. Match naming, envelopes, and status-code conventions already in use.
+
+# RESTful API design
+
+## Resource naming and URLs
+
+- URLs identify **resources (nouns)**, not actions. Use HTTP methods for actions.
+- **Plural collections:** `/users`, `/orders` — not `/user` or `/getUsers`.
+- **Kebab-case** segments: `/order-items`, not `/orderItems` or `/order_items`.
+- **Max 2 nesting levels:** `/users/{id}/orders` is fine; deeper hierarchies → flatten with query params (`/order-item-variants?order_id=…`).
+- **No CRUD verbs in paths:** `/users` + POST, not `/createUser`.
+- **Collection vs item:** `GET /users`, `GET /users/{id}`, `POST /users`, `PUT /users/{id}`, `PATCH /users/{id}`, `DELETE /users/{id}`.
+- **Non-CRUD actions:** `POST /orders/{id}/cancel` only when PATCH state change is awkward; prefer `PATCH` with `{ "status": "cancelled" }`; document in OpenAPI.
+- **Filtering/sorting:** query params on the collection — `GET /orders?status=open&sort=-created_at`.
+- **Version from day one:** `/api/v1/...` unless the repo uses header versioning — pick one and stay consistent.
+
+## HTTP methods
+
+| Method | Use | Idempotent | Typical success |
+|--------|-----|------------|-----------------|
+| GET | Read | Yes | 200 |
+| POST | Create / non-idempotent action | No* | 201 + `Location` |
+| PUT | Full replace | Yes | 200 or 204 |
+| PATCH | Partial update | No* | 200 |
+| DELETE | Remove | Yes | 204 |
+
+\*Make POST (and side-effect PATCH) **safe to retry** via `Idempotency-Key`.
+
+## Status codes
+
+Use precisely — don’t default everything to 200/500.
+
+- **200** — successful GET/PUT/PATCH with body.
+- **201** — POST created; return `Location: /api/v1/users/{id}`.
+- **204** — successful DELETE or update with no body.
+- **400** — malformed JSON, wrong types, missing required top-level fields.
+- **401** — not authenticated.
+- **403** — authenticated but not allowed.
+- **404** — resource not found (or not visible to caller).
+- **409** — duplicate, idempotency key reused with different body, stale optimistic lock.
+- **422** — valid JSON, failed business/validation rules (common in FastAPI/Pydantic).
+- **429** — rate limited; include `Retry-After` when applicable.
+- **500** — unexpected server fault only.
+- **503** — dependency down / overload; retryable.
+
+## Error responses
+
+- **Never** return 200 with `{ "error": … }`.
+- **Greenfield default:** RFC 9457 Problem Details — `Content-Type: application/problem+json` with `type`, `title`, `status`; add `detail`, `instance`, and `errors[]` for field validation.
+- **Existing repos:** match the project envelope — don’t introduce a second error shape in the same API.
+- **Production:** no stack traces, SQL, or internal paths in responses; log server-side with correlation ID.
+
+## Request/response conventions
+
+- **JSON** by default; `camelCase` or `snake_case` — match the repo consistently.
+- **Create:** minimal required fields in; full resource (or `{ id }` + Location) out.
+- **Update:** PUT replaces entire resource; PATCH accepts partial.
+- **Lists:** wrap in `{ "data": [...], "pagination": { … } }` or repo equivalent; never unbounded arrays.
+- **Timestamps:** ISO 8601 UTC (`2026-07-03T21:30:00Z`).
+- **Money/large IDs:** strings when JS clients exist; document in schema.
+
+## Pagination
+
+- **Cursor/keyset** for large or live-changing datasets — `?cursor=…&limit=20`; response includes `next_cursor`, `has_more`.
+- **Offset** only for small bounded admin lists — cap `limit` (e.g. max 100).
+- **Sort:** explicit `sort=field` or `sort=-field`; tie-break with unique key (`id`).
+
+## Idempotency and concurrency
+
+- **POST that creates/charges/sends:** accept `Idempotency-Key` (UUID); cache response ~24h; replay on retry; **409** if same key, different body.
+- **Optimistic concurrency:** `ETag` + `If-Match` or `updated_at` version; **409** on stale write.
+
+## Security and operational headers
+
+- **Auth:** match repo (Bearer, cookie, API key); never credentials in query strings.
+- **Rate limiting:** 429 + `Retry-After`.
+- **CORS:** explicit origins for web APIs — not `*` with credentials.
+- **Deprecation:** `Sunset`, `Deprecation`, `Link: rel="successor-version"` when retiring versions.
+- **Health:** `GET /health` (liveness) and `GET /ready` (dependencies) — separate from business resources.
+
+## Documentation
+
+- Maintain **OpenAPI 3** (or repo equivalent) for HTTP APIs.
+- **Non-breaking:** optional new JSON fields. **Breaking:** remove/rename/change type → new version.
+
+## REST anti-patterns
+
+Reject: verbs in URLs, singular collection names, nesting >2 levels, 500 for validation, inconsistent error JSON, unbounded lists, POST without idempotency on order/payment/notification paths.
+
+# Endpoint design: prevent N+1
+
+- **Design around access patterns**, not ER diagrams alone. Before shipping a list endpoint, list every related field in the response and how each is loaded.
+- **One round-trip per resource type** — N parents + M children = 2 queries (or 1 JOIN), not N+1.
+- Load relations in the **repository/query layer**, not in serializers/templates in a loop.
+- **Includes:** explicit `?include=author,comments` or fixed includes in OpenAPI; cap depth.
+- **Batch:** `GET /items?ids=1,2,3` or `POST /items/batch` with `WHERE id IN (...)` — never N sequential lookups.
+- **GraphQL** (if used): DataLoader from day one; per-request cache.
+- **Tests:** assert max query count on hot list endpoints when the repo supports it (Django `assertNumQueries`, SQLAlchemy event listener, `nplusone` in dev).
+
+# Auth and trust boundaries
+
+- Authenticate early; authorize per resource.
+- Secrets from env only — never commit. On Spark repos: canonical names `HF_TOKEN`, `CIVITAI_API_KEY`.
+- Redact tokens and PII in logs.
+
+# Concurrency and I/O
+
+- Timeouts on external calls; retry policy per `resilience.mdc` (backoff + full jitter, finite attempts).
+- Don’t block the event loop (async) or exhaust thread pools (sync).
+- File/subprocess cleanup in `finally`.
+
+# Observability
+
+- Structured logs with `correlation_id` / `request_id` — full patterns in `observability.mdc`.
+- Log server-side with correlation ID; never stack traces in API responses.
+
+# Error handling (Python)
+
+- Structured errors; no bare `except:`; re-raise or wrap with context.
+- Separate user-facing messages from internal diagnostics.
+
+# Testing (pytest)
+
+- Follow **`testing.mdc`** for TDD and test quality.
+- Query-count assertions on list endpoints when applicable.
+
+# Python style
+
+- Type hints on public functions; `unknown` over `Any`.
+- Match project formatter/linter (`ruff` in `spark_ops`).
+
+# Ops / spark_ops
+
+- DGX Spark (`edgexpert-84c0`) is the runtime for live stack — not macOS unless stated.
+- Sync repo → deploy when changing live services.
+- Run the repo’s test command before claiming done (`uv run pytest`, etc.).
+
+# Defer to repo
+
+FastAPI vs Django, SQLAlchemy vs raw SQL, httpx vs requests — use what’s already there.

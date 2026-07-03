@@ -1,0 +1,70 @@
+---
+description: Messaging — Celery, RabbitMQ, SQS, Kafka; queues, consumers, idempotency, DLQs
+globs: "**/celery*.py, **/tasks/**/*.py, **/*rabbit*, **/*kafka*, **/*sqs*, **/consumers/**, **/producers/**"
+alwaysApply: false
+---
+
+# When to use which
+
+| Need | Prefer | Avoid when |
+|------|--------|------------|
+| Python background jobs (Django/FastAPI) | **Celery** + Redis/Rabbit broker | Fire-and-forget on Lambda only |
+| Complex AMQP routing, on-prem | **RabbitMQ** direct | Infinite replay / log retention needed |
+| AWS-native, serverless queues | **SQS** (+ Lambda) | High-throughput strict ordering without FIFO tradeoffs |
+| Event stream, replay, many consumers | **Kafka** | Simple task queue suffices (don't add Kafka for low volume) |
+
+**Defer to repo** — do not introduce a new broker unless asked or repo already uses it.
+
+# Universal rules (all systems)
+
+- **At-least-once is the default** — design **idempotent** consumers; duplicates will happen.
+- **Idempotency key** = deterministic business key (`order_id`, payload hash) — **not** broker message ID.
+- **DLQ / parking lot** for poison messages; alert on DLQ depth; no infinite requeue loops.
+- **Structured logging:** `correlation_id`, `message_id`, attempt count.
+- **Pass IDs, not objects** in task payloads (especially Celery).
+
+# Celery
+
+- `task_acks_late = True`, `task_reject_on_worker_lost = True`, `worker_prefetch_multiplier = 1`.
+- Django: dispatch with **`transaction.on_commit()`** — never enqueue before DB commit.
+- `@shared_task(bind=True)` + `autoretry_for` (specific exceptions only) + exponential backoff; finite `max_retries`.
+- **`retry_backoff=True`**, **`retry_jitter=True`**, **`retry_backoff_max=600`** — prevents synchronized retry storms; see `resilience.mdc` for backoff math.
+- Never `autoretry_for=(Exception,)`.
+- Separate queues by priority; route heavy tasks away from email/webhook paths.
+- Pass primary keys; reload model inside task.
+- Idempotency: DB unique constraint, status flag, or Redis `SET NX EX` lock keyed on business payload.
+
+# RabbitMQ
+
+- **Quorum queues** for durability; durable exchanges + queues.
+- **Manual ack** (`auto_ack=False`); ack only after successful processing.
+- **`basic_qos(prefetch_count=10–50)`** — start ~20; use 1 for slow/ordered work.
+- **DLX** + `x-delivery-limit` on quorum queues.
+- **`x-max-length`** + **`x-message-ttl`** to prevent unbounded growth / memory alarms.
+- Separate vhosts per environment.
+
+# AWS SQS
+
+- Visibility timeout ≥ **3–6×** max processing time.
+- Extend with `ChangeMessageVisibility` for long jobs.
+- **Standard** = at-least-once; **FIFO** = ordering + 5-min dedup — still idempotent handlers.
+- FIFO: `MessageGroupId` for parallelism; `MessageDeduplicationId` from business key.
+- **DLQ** with `maxReceiveCount` (3–5); alarm on DLQ depth.
+- Lambda + SQS: partial batch failure reporting; visibility ≈ 6× Lambda timeout.
+
+# Kafka
+
+- Producer: `enable.idempotence=true`, `acks=all`.
+- Unique `transactional.id` per instance for read-process-write pipelines.
+- Consumer: `enable.auto.commit=false`; commit offsets **after** successful processing.
+- `isolation.level=read_committed` when producers use transactions.
+- Partition key drives ordering; one consumer per partition per group.
+- **External side effects** (DB, HTTP): **transactional outbox** — Kafka EOS does not cover external systems.
+- Kafka Streams: `processing.guarantee=exactly_once_v2` when using Streams.
+
+# Anti-patterns
+
+- Assuming exactly-once without idempotent handlers.
+- Infinite retry on poison messages.
+- Enqueue before DB commit (Celery + Django).
+- Adding Kafka/Rabbit for trivial background work.

@@ -1,0 +1,37 @@
+---
+description: Intentional code, TypeScript discipline, TDD, review angles — fewer regressions; pair with project linters and tests
+alwaysApply: true
+---
+
+# Intentional code
+
+- Choose the **smallest** design that solves the problem; prefer direct flow over indirection.
+- Extract helpers/abstractions only when they improve clarity, boundaries, or **proven** reuse — duplicate a little before premature DRY.
+- Avoid ceremony: extra layers that only pass data through, one-method classes with no state, options nobody uses.
+
+# TypeScript
+
+- **Strict typing**; avoid `any` — use `unknown` and narrow.
+- **Small, intentional diffs** over speculative architecture or drive-by cleanup.
+
+# Imports
+
+- Use **static** `import` only — **no** dynamic `import()` (hurts test mocking and bundler assumptions unless the codebase already has a documented exception).
+
+# Tests and correctness
+
+- Follow **`testing.mdc`** for TDD, RED-GREEN-REFACTOR, anti-patterns, and meaningful assertions.
+- After a bug fix, add or run a **regression** test when the project pattern supports it.
+
+# Ambiguity
+
+- If requirements are unclear, **ask targeted questions** or state assumptions — do not silently guess API shapes, auth, or data ownership.
+
+# Review lens (before commit / PR)
+
+On the **changed** surface area, scan for: behavior bugs and regressions; missing high-value tests; silent error handling; weak types at boundaries; misleading comments; unnecessary complexity. Report real issues, not nitpicks.
+
+# Project context
+
+- For non-trivial work, skim **project docs** when present (`README`, `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING`).
+- For UI, follow that project’s styling system (Tailwind, tokens, CSS modules) — do not default to inline styles when utilities exist.

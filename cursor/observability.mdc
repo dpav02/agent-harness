@@ -1,0 +1,82 @@
+---
+description: Observability — structured logging, OpenTelemetry, Sentry, Datadog, log-trace correlation
+globs: "**/*sentry*, **/otel*, **/opentelemetry*, **/instrumentation*, **/*structlog*, **/*logging*.py, **/*logger*.ts, **/ddtrace*, **/datadog*, **/handler-wrapper.ts, **/middleware/**"
+alwaysApply: false
+---
+
+# Context: defer to repo
+
+Use the observability stack the project already ships — Sentry-only, Datadog APM, full OpenTelemetry, or stdout JSON. Do not add a second stack without user ask.
+
+# Three pillars
+
+| Signal | Purpose | Default |
+|--------|---------|---------|
+| **Logs** | What happened, with context | Structured JSON in production |
+| **Traces** | Request path across services | OTel or vendor APM |
+| **Metrics** | Rates, latency, saturation | RED for services; USE for resources |
+
+# Structured logging (all stacks)
+
+- **JSON in production** — one event per line; no unstructured `print` in hot paths.
+- **Required fields:** `timestamp` (ISO UTC), `level`, `message`/`event`, `service`, `env`, `version`.
+- **Correlation at top level:** `trace_id`, `span_id`, `request_id` / `correlation_id`.
+- **Context binding:** bind request-scoped fields once (route, method, user_id hash) — not repeated in every string.
+- **Severity discipline:**
+  - `error` — needs human attention soon
+  - `warn` — expected failure path (validation, declined payment)
+  - `info` — significant business events
+  - `debug` — dev/staging only
+- **Never log:** passwords, API keys, full credit cards, raw `Authorization` headers, full request bodies with PII.
+
+# OpenTelemetry (vendor-neutral baseline)
+
+- **Propagator:** W3C `tracecontext`; `baggage` only for low-cardinality metadata — not credentials.
+- **Auto-instrument** HTTP, DB, and queue boundaries; manual spans only for named business ops (`checkout`, `fraud_check`) — not per-function waterfalls.
+- **Log bridge:** OTel SDK injects trace/span IDs into logs (`OTEL_PYTHON_LOG_CORRELATION=true`, structlog processor, or Winston instrumentation).
+- **Queue/async:** embed W3C trace context in Celery/SQS/Kafka headers or payload; re-hydrate in worker.
+- **Sampling:** tail sampling for errors and slow traces; drop health-check spans in Collector.
+- **Cardinality:** no unbounded span attributes (`user.id` → log field or span event, not span attribute).
+- **Semantic conventions:** use OTel standard names (`http.request.method`, `db.system.name`) when adding custom attrs.
+
+# Sentry (when repo uses it — e.g. jobpriced)
+
+- Init once at handler entry; set `environment`, `release`, `tracesSampleRate`.
+- **`beforeSend`:** scrub PII; drop expected client errors (4xx validation).
+- **Capture:** unhandled exceptions + 5xx `AppError`; tag `code`, `path`, `method`.
+- **Fingerprinting:** stable groups for infra failures (`database-connection-error`) vs one-off noise.
+- **Releases:** tie deploy SHA to release health; source maps for minified frontend.
+- **Don't duplicate:** log once + capture once — avoid triple-reporting (log + Sentry + re-throw without purpose).
+
+# Datadog (when repo uses it)
+
+- **Unified Service Tagging:** `DD_ENV`, `DD_SERVICE`, `DD_VERSION`.
+- **`DD_LOGS_INJECTION=true`** for trace ↔ log correlation.
+- JSON logs or pipeline parsing required for correlation to work.
+- Same env/version across metrics, traces, and logs.
+
+# Operational signals
+
+- **`/health`** (liveness) vs **`/ready`** (dependencies) — exclude from business trace volume.
+- **Alert on:** error rate, p99 latency, DLQ depth, **retry rate** — not just raw 500 count.
+- **RED metrics** for services: rate, errors, duration.
+- **USE metrics** for resources: utilization, saturation, errors.
+
+# Python patterns
+
+- **structlog:** keyword args (`log.info("order_created", order_id=id)`) — not f-strings in message.
+- **stdlib logging:** JSON formatter + OTel correlation processor when not using structlog.
+- Init OTel **before** structlog so trace context is available in processors.
+
+# TypeScript patterns
+
+- JSON `console.error` or structured logger in handler wrapper (jobpriced pattern).
+- Sentry via `@sentry/aws-serverless` at Lambda boundary — not scattered `captureException` in every service.
+
+# Anti-patterns
+
+- Printf debugging left in production paths.
+- Logging full request/response bodies.
+- High-cardinality metric labels (per-user, per-request-id as metric tag).
+- Duplicate error reporting without distinct purpose.
+- Missing correlation ID on error responses (match log field to response header when repo supports it).

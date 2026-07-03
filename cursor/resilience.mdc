@@ -1,0 +1,93 @@
+---
+description: Resilience — retries, exponential backoff with full jitter, circuit breakers, idempotency gates
+globs: "**/*retry*, **/tenacity*, **/*backoff*, **/celery*.py, **/tasks/**, **/clients/**, **/http*.py, **/bedrock.ts, **/utils/retry.ts"
+alwaysApply: false
+---
+
+# When to use what
+
+| Situation | Prefer |
+|-----------|--------|
+| Transient network blip | Retry with exponential backoff + **full jitter** |
+| Rate limit (429) | Respect `Retry-After`, then backoff |
+| Validation/auth (400/401/403/404) | Fail fast — no retry |
+| Sustained upstream outage | Circuit breaker + fail fast |
+| Side-effecting work (payment, email) | Idempotency key first; then retry |
+| Background work | Queue + consumer retry/DLQ — see `messaging.mdc` |
+
+# Universal retry rules
+
+- **Idempotency gate** — no retry for mutating ops without idempotency key or known-safe semantics.
+- **Finite budget:** max attempts (typically 3–5) AND max total wait time.
+- **Classify errors:** retry only `retryable=true` / transient exceptions — not validation or auth.
+- **Backoff:** exponential with **full jitter** — `sleep = random(0, min(cap, base * 2^attempt))`.
+- **Respect server hints:** parse `Retry-After` (seconds or HTTP-date) before local backoff.
+- **Log each attempt:** `attempt`, `max_attempts`, `delay_ms`, `error_code`, `correlation_id`.
+- **No nested retries:** don't wrap SDK retries (boto3, AWS SDK v3) unless customizing — avoid double-retry.
+
+# HTTP / API clients
+
+## Safe to retry
+
+- GET, HEAD
+- PUT when full-replace semantics
+- DELETE when idempotent
+- POST/PATCH **only** with `Idempotency-Key` or documented safe endpoint
+
+## Retry status codes
+
+408, 429, 500, 502, 503, 504 — plus connect/timeouts.
+
+**Never retry:** 400, 401, 403, 404, 409 (unless repo defines retryable conflict).
+
+## Python
+
+- **tenacity:** `wait_exponential_jitter(initial=1, max=60)` + `stop_after_attempt(5)`.
+- **httpx:** no built-in retries — use tenacity decorator or `httpx-retries` transport.
+- Retry only specific exceptions (`ConnectError`, `ReadTimeout`) — not bare `Exception`.
+
+## TypeScript
+
+- Central **`withRetry(service, fn)`** — service configs in shared constants (jobpriced pattern).
+- Honor `AppError.retryable` — throw immediately when `retryable=false`.
+- Backoff: `baseDelayMs * 2^attempt + random jitter`; cap total attempts.
+- API error envelope: expose `retryable` + optional `retryAfterMs` for clients.
+
+# AWS SDK
+
+- Prefer SDK built-in retries (`standard` / `adaptive` in boto3 and AWS SDK v3).
+- Bedrock/Transcribe: retry `ThrottlingException`, `ServiceUnavailableException` — not `ValidationException`.
+- Don't double-wrap SDK calls unless overriding defaults with reason.
+
+# Celery
+
+See also `messaging.mdc` for ack/DLQ rules.
+
+```python
+@shared_task(
+    autoretry_for=(TransientError,),  # specific — never Exception
+    retry_backoff=True,
+    retry_jitter=True,
+    retry_backoff_max=600,
+    max_retries=5,
+)
+```
+
+- `retry_jitter=True` prevents synchronized retry storms across workers.
+- Log attempt count; route to DLQ after max — no infinite requeue.
+
+# Circuit breaker (when warranted)
+
+- Open after error threshold in sliding window; half-open probe; close on success.
+- Use when retry storms would worsen sustained outage — not for every HTTP call.
+- Libraries: `opossum` (Node), `pybreaker` (Python) — only when repo complexity justifies.
+- Start with capped retries + jitter before adding a breaker (ponytail default).
+
+# Anti-patterns
+
+- Infinite retry loops.
+- Retry on 400/401/404.
+- Synchronized retries without jitter (thundering herd).
+- Retry POST without idempotency key.
+- Nested retry layers (SDK + app + Celery all retrying the same call).
+- `autoretry_for=(Exception,)` in Celery.

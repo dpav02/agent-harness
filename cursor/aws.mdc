@@ -1,0 +1,77 @@
+---
+description: AWS — IAM, Lambda, boto3, IaC, DynamoDB, S3, Bedrock; apply when editing infra or cloud SDK code
+globs: "**/*.tf, **/cdk/**, **/sst.config.ts, **/template.yaml, **/serverless.yml, **/infra/**, **/packages/api/**"
+alwaysApply: false
+---
+
+# Context: defer to repo
+
+Extend the project's IaC stack (SST, CDK, Terraform, SAM) and existing IAM patterns. Do not introduce a new framework or broad `*` permissions unprompted.
+
+# Profile and credentials
+
+- Inspect `~/.aws/config`; use the repo-stated profile (e.g. `AWS_PROFILE=jobpriced`) — never assume `default`.
+- Prefer **IAM roles + STS** over long-lived access keys.
+- Python: use `boto3.Session()` per task — no global mutable clients in shared libraries.
+- Never hardcode credentials; never commit `.env` with keys.
+
+# IAM least privilege
+
+- Start with no permissions; add only what the task requires.
+- Scope **actions** and **resources** — avoid `"Resource": "*"` unless justified and documented.
+- Use **permission boundaries** on roles when the repo supports them.
+- Prefer IAM Access Analyzer / CloudTrail-informed policies over guessed wildcards.
+- Tag roles and policies (`Environment`, `Project`).
+
+# Infrastructure as code
+
+- Treat IaC changes like application code — review before merge.
+- Run **`terraform plan`**, **`sst diff`**, or equivalent before apply.
+- One logical change per PR when possible; show plan output before destructive changes.
+
+# Lambda
+
+- Timeout ≥ p99 processing time + buffer.
+- Memory from profiling, not defaults.
+- Handlers triggered by **SQS, S3, EventBridge** must be **idempotent** — duplicates happen.
+- Thin handlers: validate → service → response; keep business logic testable outside Lambda.
+- Structured JSON logs with `requestId`, `correlationId`.
+
+# S3
+
+- Block public access by default.
+- SSE-S3 or SSE-KMS for sensitive data.
+- Lifecycle rules for temp/upload buckets.
+- Presigned URLs with short expiry when needed.
+
+# DynamoDB
+
+- Match repo table design (on-demand vs provisioned).
+- Single-table design only when the repo already uses it.
+- Avoid hot partitions; design keys from access patterns.
+- PascalCase table names when repo uses that convention (jobpriced).
+
+# Bedrock (when repo uses it)
+
+- Defer to project docs (e.g. `docs/bedrock-runtime-best-practices.md`).
+- Structured output JSON schemas: **`additionalProperties: false`** on every object.
+- Do not hardcode model IDs in handlers — use repo routing/config.
+- Prefer existing `InvokeModel` / streaming patterns unless migration to Converse is explicitly requested.
+
+# Secrets and config
+
+- Secrets Manager or SSM Parameter Store — not env files in git.
+- SSM paths namespaced by environment.
+
+# Cost and observability
+
+- Tag billable resources.
+- Alarm on unexpected spend and error rates.
+- Enable CloudTrail where the repo expects audit logs.
+
+# Anti-patterns
+
+- `"Action": "*"` / `"Resource": "*"` without review.
+- Long-lived IAM user keys in application code.
+- `aws` CLI apply/deploy without showing plan/diff first.
+- Assuming `default` AWS profile.

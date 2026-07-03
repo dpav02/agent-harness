@@ -1,0 +1,98 @@
+---
+description: Data modeling, SQL, ORMs, migrations — Postgres, MySQL, DuckDB; Django, SQLAlchemy, Alembic
+globs: "**/models/**/*.py, **/models.py, **/migrations/**/*.py, **/alembic/**/*.py, **/alembic.ini, **/*.sql, **/schema.prisma"
+alwaysApply: false
+---
+
+# Context: greenfield vs existing
+
+- **Existing codebase:** Extend the project’s models, migrations, and query patterns. Do not swap ORM, engine, or naming conventions unprompted.
+- **Greenfield:** Normalize to 3NF first; pick PK strategy and audit columns before table one.
+
+# Universal data modeling
+
+- **Normalize to 3NF first** — denormalize only after `EXPLAIN ANALYZE` (Postgres) or measured plans prove a join is the bottleneck.
+- **Model relationships explicitly** — junction tables for M:N; FK constraints at the DB layer, not only in ORM.
+- **Primary keys:** Postgres — `BIGSERIAL` default; cross-DB UUIDs — prefer **UUID v7** (time-ordered) over random v4. MySQL — `BIGINT UNSIGNED AUTO_INCREMENT` unless global ID required.
+- **Audit columns:** `created_at`, `updated_at` on every table; store timestamps in **UTC** (`timestamptz` in Postgres).
+- **Soft deletes:** `deleted_at` nullable + filter `WHERE deleted_at IS NULL` in every query; partial index when used heavily.
+- **Smallest correct types** — don’t default everything to `TEXT`/`BIGINT`; enums/check constraints for stable status fields.
+- **JSONB / JSON:** flexible metadata only; if you filter a JSON path every request, promote to a real column + index.
+- **Index from query patterns** — composite indexes for `(tenant_id, created_at DESC)`; index FK columns; partial indexes for skewed filters; don’t speculative-index.
+- **Additive evolution** — add columns/tables; avoid rename-in-place on live systems; expand → backfill → contract.
+
+# Engine roles
+
+| Engine | Role | Key rules |
+|--------|------|-----------|
+| **PostgreSQL** | OLTP system of record | FK constraints, `timestamptz`, `CREATE INDEX CONCURRENTLY`, `jsonb` + GIN when needed, `NOT VALID` constraints then validate |
+| **MySQL (InnoDB)** | OLTP system of record | `utf8mb4`, explicit FKs, `BIGINT UNSIGNED AUTO_INCREMENT`, composite indexes for filter+sort |
+| **DuckDB** | Embedded OLAP / analytics | Not a write replacement for Postgres/MySQL; single-writer; query templates not raw client SQL; timeouts + row caps; isolate from main API |
+
+**Hybrid:** Postgres/MySQL = writes + constraints; DuckDB = read-heavy aggregations via batch/CDC export — don’t run heavy `GROUP BY` on the OLTP primary.
+
+# N+1 prevention by ORM
+
+| Relationship | Django | SQLAlchemy 2.x |
+|--------------|--------|----------------|
+| FK / OneToOne | `select_related('author')` | `joinedload(Model.author)` |
+| Reverse FK / M2M | `prefetch_related('tags')` | `selectinload(Model.tags)` |
+| Filtered/nested | `Prefetch('comments', queryset=…)` | chained `.options(joinedload(...))` |
+| Block lazy load (dev) | debug toolbar / query logging | `raiseload()` or `lazy="raise"` |
+| Count without N queries | `annotate(Count('posts'))` | SQL `COUNT` subquery |
+
+**Rules:**
+
+- Eager loading at **queryset construction** (manager, repository, `get_queryset`) — not patched in templates/serializers.
+- **Wrong tool = silent N+1:** `select_related` on M2M/reverse FK fails silently in Django; `joinedload` on large collections explodes rows — use `selectinload`.
+- Prefer `only()` / `defer()` when list views don’t need all columns.
+- Push aggregates to SQL (`annotate`, `GROUP BY`) instead of Python loops.
+
+# Django-specific
+
+- Explicit **`related_name`** on FK/M2M.
+- Multi-step writes in **`transaction.atomic()`**.
+- **Migrations:** separate schema from data (`RunPython`); `apps.get_model()` in data migrations; batch backfills; `reverse_code`; `atomic = False` for long data migrations.
+- Avoid signal-heavy designs that block `bulk_create` / `update()`.
+- Accept **primary keys** in services when a full instance isn’t needed.
+- Custom **QuerySet managers** for repeated filters/includes.
+
+# SQLAlchemy + Alembic
+
+- **Autogenerate is a draft** — always review; never ship blind `--autogenerate`.
+- **Expand → migrate → contract** for zero-downtime:
+  1. Add nullable column / new table
+  2. Deploy code writing to both old and new (if renaming)
+  3. Backfill in separate revision or background job (chunked)
+  4. Add constraints (`NOT NULL`, FK) after backfill
+  5. Deploy code reading new only
+  6. Drop old column in contract migration
+- **Separate DDL from DML** — schema revision ≠ data backfill revision.
+- **Postgres online ops:** `CREATE INDEX CONCURRENTLY`; FK as `NOT VALID` then `VALIDATE CONSTRAINT`; avoid one-step `DEFAULT` on large tables.
+- **Downgrades:** trivial for pure schema; `NotImplementedError` for irreversible data migrations.
+- **Test migrations** — upgrade + downgrade in CI when project supports it.
+- Hot-path **`lazy="selectin"`** or `"joined"` at mapping level; `raiseload()` elsewhere in dev/staging.
+
+# Migration safety checklist
+
+Before merging any migration:
+
+- [ ] Reviewed autogenerated SQL for table locks and full-table rewrites
+- [ ] Large backfill split out and batched
+- [ ] Backwards-compatible with currently deployed app version
+- [ ] Indexes added for new FK/filter columns
+- [ ] Grep’d all references to renamed/dropped columns
+- [ ] Downgrade tested or explicitly marked non-reversible
+
+# Prisma
+
+- **`schema.prisma` is source of truth** — migrate with `prisma migrate dev` (local) / `prisma migrate deploy` (CI/prod).
+- **Relations need both sides** — explicit `@relation`; avoid orphan records.
+- **`select` / `include` intentionally** — same N+1 rules as ORMs (`include` = eager load; over-include on lists = row explosion).
+- **`$transaction`** for multi-step writes; interactive transactions only when needed.
+- **Raw SQL** via `$queryRaw` tagged templates — never string-interpolate user input.
+- **Repos using Prisma:** SparkCatch (`apps/web/prisma/schema.prisma`), `scheduled-media`.
+
+# Defer to repo
+
+Django migrations vs Alembic vs Prisma, raw SQL vs ORM, SQLite vs Postgres in tests — use what the project already chose.

@@ -1,0 +1,28 @@
+---
+description: When to plan, how to spec, validate assumptions — Plan mode, definition of done, incremental delivery
+alwaysApply: true
+---
+
+# Think before coding
+
+- **Small / obvious** (typo, one-liner, follow existing pattern): implement directly.
+- **Large or ambiguous** (new feature, multi-file, unclear requirements, meaningful trade-offs): slow down — clarify goals, constraints, and **acceptance criteria** first.
+
+# Planning and Plan mode
+
+- Use **Plan mode** (or an explicit written plan) when work spans multiple files, systems, or milestones, or when direction is still open.
+- Good plans name: **goal**, **context** (what files/errors matter), **constraints**, and **done when** (what verifies success — tests, commands, UX checks). Save substantial plans under `.cursor/plans/` when you want resumable team context ([Cursor agent best practices](https://cursor.com/blog/agent-best-practices)).
+- If implementation diverges from intent, **revise the plan** (or revert and re-run) rather than stacking corrective prompts.
+
+# Validate risky assumptions
+
+- Before large changes to **prompts**, **AI integrations**, **regex/parsers**, **schemas**, **migrations**, or **external APIs**: gather evidence — grep usages, reproduce in a test or script, or hit the real endpoint/stage when safe.
+
+# Spec shape
+
+- “Spec” = whatever fits: bullet plan, phased checklist, short ADR — not a mandatory repo folder.
+- After planning, implement in **increments** with verification between steps when that reduces risk.
+
+# Depth
+
+- Do not replace product judgment: when the user’s goals conflict with a generic template, ask or propose options.
