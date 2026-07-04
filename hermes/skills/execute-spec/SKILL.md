@@ -10,7 +10,7 @@ description: Execute one acceptance criterion from .harness/task-packet.md — T
 ## Start
 
 1. Read `.harness/task-packet.md` frontmatter and criterion table
-2. Load **ornith-guardrails** and **knowledge-lookup** if domain APIs involved
+2. Load **tool-call-discipline**, **ornith-guardrails**, and **knowledge-lookup** if domain APIs involved
 3. Pick target AC:
    - `execute-spec` / `resume`: first `pending` AC (or `in-progress` if resuming)
    - `retry`: first `failed` AC — reset its git changes if partial work exists

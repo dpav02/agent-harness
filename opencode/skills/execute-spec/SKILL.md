@@ -10,7 +10,7 @@ description: Execute one acceptance criterion from .harness/task-packet.md — T
 ## Per AC session
 
 1. Read packet; pick next `pending` AC (or `failed` on `retry`)
-2. Load **ornith-guardrails** for local model discipline
+2. Load **tool-call-discipline** and **ornith-guardrails** for local model discipline
 3. tdd-lite → implement → run test path → run `check_command`
 4. Green: AC → `done`, report, **halt**
 5. Red after 3 fixes: AC → `failed`, **halt** — no auto-retry

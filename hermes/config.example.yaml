@@ -12,6 +12,17 @@ model:
 agent:
   max_turns: 60
   verify_on_stop: false  # use verification-before-completion skill instead
+  # execute-spec executor tuning (merge if your Hermes version supports these keys):
+  tool_use_enforcement: auto   # try required for execute-spec-only sessions if per-session override exists
+  parallel_tool_call_guidance: false  # small models: sequential tool calls reduce malformed JSON
+  reasoning_effort: low        # fewer thinking tokens → fewer stall loops on executor
+
+# Temperature 0 for executor benches / execute-spec (env or model request):
+# HERMES_EXECUTOR_TEMPERATURE=0
+
+# Trim tool surface during execute-spec — disable noisy toolsets in full config:
+# disabled_toolsets: [session_search, ...]
 
 # Pipeline skills are on-demand via skill tool — not global SOUL rules
 # Deploy skills: cd ~/dev/agent-harness && ./install.sh --target hermes
+# execute-spec loads: tool-call-discipline, ornith-guardrails, knowledge-lookup

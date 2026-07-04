@@ -18,7 +18,9 @@ timestamp: 2026-07-04T16:00:00Z
 
 - Grep/locate before read entire files
 - LSP/symbol search when available (Python strong; Swift weaker)
-- Fewer parallel tool calls — sequential clarity beats burst
+- **One tool call at a time** when possible — parallel bursts increase malformed JSON on 27–35B models (ornith-guardrails rule 4)
+- Load **tool-call-discipline** during execute-spec sessions
+- See [tool-call patterns](tool-call-patterns.md) for Hermes tool selection
 
 ## Planning vs execution split
 
