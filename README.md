@@ -1,6 +1,6 @@
 # agent-harness
 
-Always-on agent rules for **OpenCode / Ornith** and **Cursor** — workflow, TDD, domain expertise, and frontend craft. Domain rules load on demand via OpenCode skills.
+Always-on agent rules for **OpenCode / DGX Spark (Qwen3.6-27B Prisma)** and **Cursor** — workflow, TDD, domain expertise, and frontend craft. Domain rules load on demand via OpenCode skills.
 
 ## Where rules live (installed)
 
@@ -50,8 +50,11 @@ cursor/
 ## Install
 
 ```bash
-# From a clone of this repo:
+# From a clone of this repo (copy):
 ./install.sh
+
+# Symlink — stays in sync with git pull (recommended on your Mac):
+./install.sh --link
 
 # Or manually:
 cp opencode/AGENTS.md opencode/workflow-agents.md opencode/testing-agents.md opencode/opencode.jsonc ~/.config/opencode/
@@ -92,13 +95,14 @@ wc -c ~/.config/opencode/AGENTS.md ~/.config/opencode/workflow-agents.md ~/.conf
 
 ## Models (DGX Spark)
 
-Default config in `opencode.jsonc`:
+Default config in `opencode/opencode.jsonc` (Tailscale → `http://edgexpert-84c0:8080/v1`):
 
 | Key | Model | Role |
 |-----|-------|------|
-| `model` | `dgx/ornith` | Primary agent work |
+| `model` | `dgx/qwen3.6-27b` | Primary agent work (PrismaAURA vLLM) |
 | `small_model` | `dgx/qwen3.6-27b` | Titles, lightweight tasks |
-| (available) | `dgx/deepseek-v4-flash` | Switch via `/models` when deployed |
+
+Mac preflight (from `spark_ops` repo): `bin/spark-opencode-check.sh --chat`
 
 Local inference timeouts: 600s request, 120s chunk. Compaction pruning enabled to save context on long sessions.
 

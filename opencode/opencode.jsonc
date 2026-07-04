@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "dgx/ornith",
+  "model": "dgx/qwen3.6-27b",
   "small_model": "dgx/qwen3.6-27b",
   "instructions": [
     "workflow-agents.md",
@@ -14,7 +14,7 @@
   "provider": {
     "dgx": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "DGX Spark (local)",
+      "name": "DGX Spark (Qwen3.6-27B PrismaAURA)",
       "options": {
         "baseURL": "http://edgexpert-84c0:8080/v1",
         "apiKey": "local",
@@ -22,24 +22,10 @@
         "chunkTimeout": 120000
       },
       "models": {
-        "ornith": {
-          "name": "Ornith 1.0 35B",
+        "qwen3.6-27b": {
+          "name": "Qwen3.6-27B PrismaAURA",
           "limit": {
             "context": 262144,
-            "output": 8192
-          }
-        },
-        "qwen3.6-27b": {
-          "name": "Qwen 3.6 27B",
-          "limit": {
-            "context": 131072,
-            "output": 8192
-          }
-        },
-        "deepseek-v4-flash": {
-          "name": "DeepSeek V4 Flash",
-          "limit": {
-            "context": 131072,
             "output": 8192
           }
         }
