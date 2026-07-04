@@ -1,3 +1,8 @@
+---
+name: database
+description: Use when editing database schemas, migrations, ORMs, SQL, Prisma, Django models, SQLAlchemy, or query optimization.
+---
+
 # Database agents (OpenCode / Ornith)
 
 Data modeling, SQL, ORMs, migrations — Postgres, MySQL, DuckDB; Django, SQLAlchemy, Alembic.
@@ -76,7 +81,7 @@ Data modeling, SQL, ORMs, migrations — Postgres, MySQL, DuckDB; Django, SQLAlc
 - [ ] Backfill batched separately
 - [ ] Compatible with deployed app version
 - [ ] Indexes on new FK/filter columns
-- [ ] Grep’d renamed/dropped columns
+- [ ] Grep'd renamed/dropped columns
 - [ ] Downgrade tested or marked non-reversible
 
 ## Prisma
@@ -86,7 +91,6 @@ Data modeling, SQL, ORMs, migrations — Postgres, MySQL, DuckDB; Django, SQLAlc
 - `select` / `include` intentionally — N+1 rules apply (`include` = eager load).
 - `$transaction` for multi-step writes.
 - `$queryRaw` tagged templates only — no string-interpolated user input.
-- Repos: SparkCatch, `scheduled-media`.
 
 ## Defer to repo
 

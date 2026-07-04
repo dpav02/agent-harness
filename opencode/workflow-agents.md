@@ -1,24 +1,12 @@
 # Workflow agents (OpenCode / Ornith)
 
-Cross-cutting discipline — ponytail, verify-before-done, execution. Loads every session.
+Cross-cutting discipline — ponytail, execution, debugging. Loads every session.
 
 ## Execution
 
 - **Real environment** — run commands and fix issues here; don't only tell the user what to run.
 - **Read before acting** — open files; don't assume contents or test output from memory.
 - **Smallest diff** — no drive-by refactors; match repo naming, types, imports, doc style.
-
-## Verification before "done" (mandatory)
-
-Any claim of success needs **fresh evidence** from this session:
-
-1. Name the claim (tests pass, build OK, bug fixed, UI works).
-2. Name the command that proves it.
-3. **Run it now** — read exit code and output.
-4. Report precisely, e.g. `Ran uv run pytest tests/test_foo.py: 3 passed.`
-5. If you did not run something, say why explicitly.
-
-**Traps:** stale output from earlier runs; lint green ≠ tests green; "looks fixed" without re-running the failing path.
 
 ## Debugging
 
@@ -62,8 +50,9 @@ Non-trivial logic leaves **one runnable check** behind (test or minimal repro). 
 
 Follow **`testing-agents.md`** for RED-GREEN-REFACTOR on new behavior, bug fixes, and refactors.
 
-## OpenCode / Ornith guardrails
+## OpenCode / local LLM guardrails
 
 - One logical change per turn when possible.
-- Context budget — prefer editing 1–3 files per task on local LLM.
-- Spark/DGX defaults and auth env names (`HF_TOKEN`, `CIVITAI_API_KEY`) from global `AGENTS.md` still apply.
+- Context budget — prefer editing 1–3 files per task.
+- Load domain **skills** (see `AGENTS.md`) when the task needs specialized rules — don't guess domain conventions.
+- Spark/DGX defaults and auth env names from global `AGENTS.md` still apply.

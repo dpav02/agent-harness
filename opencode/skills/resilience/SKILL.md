@@ -1,3 +1,8 @@
+---
+name: resilience
+description: Use when implementing retries, exponential backoff, circuit breakers, idempotency gates, or fault-tolerance patterns.
+---
+
 # Resilience agents (OpenCode / Ornith)
 
 Retries, exponential backoff with full jitter, circuit breakers, idempotency gates.
@@ -19,7 +24,7 @@ Retries, exponential backoff with full jitter, circuit breakers, idempotency gat
 | 400/401/403/404 | Fail fast |
 | Sustained outage | Circuit breaker |
 | Payment/email | Idempotency key, then retry |
-| Background | Queue + DLQ (messaging-agents.md) |
+| Background | Queue + DLQ (load `messaging` skill) |
 
 ## Universal rules
 

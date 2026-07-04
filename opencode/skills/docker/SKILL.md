@@ -1,3 +1,8 @@
+---
+name: docker
+description: Use when editing Dockerfiles, docker-compose files, container images, or container deployment configuration.
+---
+
 # Docker agents (OpenCode / Ornith)
 
 Dockerfiles, compose, container security. Match existing project patterns.

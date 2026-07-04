@@ -1,3 +1,8 @@
+---
+name: aws
+description: Use when working with AWS IAM, Lambda, boto3, S3, DynamoDB, Bedrock, CloudFormation, SST, Terraform, or other AWS infrastructure.
+---
+
 # AWS agents (OpenCode / Ornith)
 
 IAM, Lambda, boto3, IaC, DynamoDB, S3, Bedrock. Match existing project patterns.
@@ -7,11 +12,11 @@ IAM, Lambda, boto3, IaC, DynamoDB, S3, Bedrock. Match existing project patterns.
 - **Grep existing IAM policies** before adding actions or resources.
 - **One resource/IAM change per turn** when possible.
 - Never run `aws` apply/deploy/destroy without showing **plan or diff** first.
-- Read repo `AGENTS.md` for profile name (`AWS_PROFILE=jobpriced`, etc.).
+- Read repo `AGENTS.md` for AWS profile name — never assume `default`.
 
 ## Profile and credentials
 
-- Inspect `~/.aws/config`; use repo-stated profile — never `default` by assumption.
+- Inspect `~/.aws/config`; use repo-stated profile.
 - IAM roles + STS over long-lived keys.
 - `boto3.Session()` per task — no global mutable clients.
 - No hardcoded credentials in code or commits.

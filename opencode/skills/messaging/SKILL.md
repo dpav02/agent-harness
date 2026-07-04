@@ -1,3 +1,8 @@
+---
+name: messaging
+description: Use when working with Celery, RabbitMQ, SQS, Kafka, message queues, async task workers, or event-driven consumers.
+---
+
 # Messaging agents (OpenCode / Ornith)
 
 Celery, RabbitMQ, SQS, Kafka — queues, consumers, idempotency.

@@ -1,6 +1,11 @@
+---
+name: frontend
+description: Use when building or editing UI, React/Next components, Tailwind CSS, accessibility, forms, layout, or frontend performance.
+---
+
 # Frontend agents (OpenCode / Ornith)
 
-Frontend craft, WIG, React/Next perf, Tailwind v4. Loads every session for UI work.
+Frontend craft, WIG, React/Next perf, Tailwind v4.
 
 ## Ornith guardrails
 
@@ -12,7 +17,6 @@ Frontend craft, WIG, React/Next perf, Tailwind v4. Loads every session for UI wo
 
 - **Existing codebase:** Extend components, tokens, patterns. No unprompted visual redesign.
 - **Greenfield:** Confirm audience, use case, brand tone when missing. Read `.impeccable.md` or repo `DESIGN.md` / `PRODUCT.md` when present.
-- **No project brief:** Read `~/.cursor/design-defaults.md` before inventing visual language.
 - **AI slop check:** Push away from generic AI output (purple-on-dark, identical card grids, Inter-only greenfield, centered-everything).
 
 ## Design thinking (greenfield)
@@ -177,10 +181,6 @@ Before claiming UI work done:
 - [ ] No AI slop tells (gradient text, identical card grid, side-stripe borders)
 - [ ] Long strings / translations don't break layout (`min-w-0`, truncate/clamp)
 - [ ] Build/lint passes; component tests per **`testing-agents.md`** when behavior changed
-
-## Testing UI
-
-Follow **`testing-agents.md`** — Testing Library, behavior not DOM structure. Don't duplicate full TDD rules here.
 
 ## Defer to repo
 

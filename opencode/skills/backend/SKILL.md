@@ -1,19 +1,22 @@
+---
+name: backend
+description: Use when building or editing Python APIs, REST endpoints, auth, backend services, or server-side Python code.
+---
+
 # Backend agents (OpenCode / Ornith)
 
 Python-first backend, REST API design, auth, ops. Match existing project patterns when present.
 
-## Local-LLM harness discipline (Ornith)
+## Local-LLM harness discipline
 
-These rules are **front and center** — smaller local models skip steps without explicit prompts.
-
-- **One logical change per turn** — don’t refactor adjacent modules while fixing a bug.
-- **Read before write** — open the file; don’t assume signatures from memory.
+- **One logical change per turn** — don't refactor adjacent modules while fixing a bug.
+- **Read before write** — open the file; don't assume signatures from memory.
 - **Grep callers** before changing shared functions — fix the shared function once at the root.
 - **Smallest diff that fixes root cause** — no drive-by cleanup.
-- **Prove it** — `uv run pytest …`, `ruff check …`, or the repo’s documented command; paste exit code + summary.
+- **Prove it** — `uv run pytest …`, `ruff check …`, or the repo's documented command; paste exit code + summary.
 - **Stop and ask** when auth, migrations, or cross-service deploy are ambiguous.
 - **Context budget** — prefer editing 1–3 files per task; for large features, break into explicit steps.
-- **Before any list endpoint** — state query count target (e.g. “≤3 queries for GET /orders?page=1”).
+- **Before any list endpoint** — state query count target (e.g. "≤3 queries for GET /orders?page=1").
 - **Before any new route** — state resource name (plural noun), HTTP method, success status, error shape; reject verb-in-URL designs.
 
 ## Context: greenfield vs existing
@@ -112,4 +115,4 @@ Reject: verbs in URLs, singular collections, deep nesting, unbounded lists, POST
 
 ## Defer to repo
 
-FastAPI vs Django, httpx vs requests — use what’s already there.
+FastAPI vs Django, httpx vs requests — use what's already there.

@@ -1,3 +1,8 @@
+---
+name: backend-ts
+description: Use when building TypeScript Lambda handlers, SST stacks, Node API routes, or server-side TypeScript — not UI/TSX.
+---
+
 # Backend TypeScript agents (OpenCode / Ornith)
 
 Lambda, SST, Node API handlers, DynamoDB. Not UI/TSX.
@@ -18,7 +23,7 @@ Lambda, SST, Node API handlers, DynamoDB. Not UI/TSX.
 - Thin handlers: validate → service → response.
 - Match project error envelope (`{ data }` / `{ error, code, details }`).
 - Idempotent for queue/event triggers.
-- REST rules in `backend-agents.md`.
+- REST rules: load `backend` skill.
 
 ## DynamoDB
 
@@ -27,7 +32,7 @@ Lambda, SST, Node API handlers, DynamoDB. Not UI/TSX.
 
 ## SST / AWS
 
-- Profile from repo (`AWS_PROFILE=jobpriced`).
+- Profile from repo `AGENTS.md`.
 - `sst diff` before deploy.
 
 ## Bedrock / prompts

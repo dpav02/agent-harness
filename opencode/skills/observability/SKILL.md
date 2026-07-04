@@ -1,3 +1,8 @@
+---
+name: observability
+description: Use when adding or editing structured logging, OpenTelemetry, Sentry, Datadog, metrics, tracing, or log correlation.
+---
+
 # Observability agents (OpenCode / Ornith)
 
 Structured logging, OpenTelemetry, Sentry, Datadog, log-trace correlation.

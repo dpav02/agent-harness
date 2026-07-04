@@ -1,31 +1,45 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "model": "dgx/ornith",
+  "small_model": "dgx/qwen3.6-27b",
   "instructions": [
     "workflow-agents.md",
-    "testing-agents.md",
-    "backend-agents.md",
-    "database-agents.md",
-    "aws-agents.md",
-    "docker-agents.md",
-    "messaging-agents.md",
-    "backend-ts-agents.md",
-    "observability-agents.md",
-    "resilience-agents.md",
-    "frontend-agents.md"
+    "testing-agents.md"
   ],
+  "compaction": {
+    "auto": true,
+    "prune": true,
+    "reserved": 10000
+  },
   "provider": {
-    "ornith": {
+    "dgx": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "Ornith (DGX Spark)",
+      "name": "DGX Spark (local)",
       "options": {
         "baseURL": "http://edgexpert-84c0:8080/v1",
-        "apiKey": "local"
+        "apiKey": "local",
+        "timeout": 600000,
+        "chunkTimeout": 120000
       },
       "models": {
         "ornith": {
           "name": "Ornith 1.0 35B",
           "limit": {
             "context": 262144,
+            "output": 8192
+          }
+        },
+        "qwen3.6-27b": {
+          "name": "Qwen 3.6 27B",
+          "limit": {
+            "context": 131072,
+            "output": 8192
+          }
+        },
+        "deepseek-v4-flash": {
+          "name": "DeepSeek V4 Flash",
+          "limit": {
+            "context": 131072,
             "output": 8192
           }
         }
