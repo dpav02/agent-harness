@@ -14,7 +14,7 @@ Jul 4 2026 A/B: Ornith-only synthetic + harness smoke vs frozen Prisma baseline.
 
 | Metric | Prisma | Ornith |
 |--------|--------|--------|
-| tool-eval hardmode | **88/100** | 78/100 |
+| tool-eval hardmode | **88/100** (Tier 0) | **91/100** (Tier 1 DFlash, Jul 4 2026) |
 | tok/s c1 median | ~36 | ~108.5 |
 | harness smoke (2 AC) | n/a | 2/2 pass |
 
