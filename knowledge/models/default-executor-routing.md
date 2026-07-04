@@ -32,9 +32,13 @@ Ornith is ~3× faster but 10 points lower on tool-eval and weaker on safety scen
 | Latency-sensitive interactive | Ornith acceptable if quality checked |
 | Planner | Opus / Cursor |
 
-## Speed without switching
+## DFlash Tier 1 verified (Jul 4 2026)
 
-If Prisma feels slow, enable DFlash Tier 1 on DGX before considering Ornith — see spark_ops `QWEN36_27B_PRISMA_RUNBOOK.md`.
+Production Prisma runs DFlash Tier 1: **+3 tool-eval points** (88 → 91) and **3.3× tok/s** (11 → ~36) vs Tier 0. DFlash improved both quality and speed — no tradeoff. See spark_ops `QWEN36_27B_PRISMA_RUNBOOK.md`.
+
+## Why AEON Ornith scored 78
+
+The benchmarked Ornith is the **abliterated** AEON Ultimate Uncensored build — refusal removal collapsed its Safety & Boundaries category to 46% (3 critical injection failures). Base `deepreinforce-ai/Ornith-1.0-35B` (safety intact, Terminal-Bench 64.2 vs Qwen3.6-35B's 52.5) with the official `qwen3_xml` parser is an untested separate candidate.
 
 ## Related
 

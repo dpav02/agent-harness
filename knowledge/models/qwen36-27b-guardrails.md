@@ -14,6 +14,7 @@ Default model in OpenCode (`dgx/qwen3.6-27b`) and Hermes VPS config pointing at 
 
 - vLLM on DGX Spark: `http://edgexpert-84c0:8080/v1` (Mac) or Tailscale IP from VPS
 - 262K context; 8K output; 600s request timeout in opencode.jsonc
+- Production tier: **Tier 1 DFlash** — verified 91/100 tool-eval hardmode + ~36 tok/s (Jul 4 2026)
 - Preflight: `spark_ops/bin/spark-opencode-check.sh --chat`
 
 ## Harness discipline
