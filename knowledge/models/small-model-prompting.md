@@ -27,7 +27,9 @@ timestamp: 2026-07-04T16:00:00Z
 | Role | Model | Output |
 |------|-------|--------|
 | Planner | Opus / Cursor Plan | Task packet with 5–8 ACs |
-| Executor | Qwen / Ornith | One AC per session |
+| Executor | **qwen3.6-27b** (default) | One AC per session |
+
+See [default executor routing](default-executor-routing.md) for Ornith vs Prisma A/B evidence (Jul 2026).
 
 Small models fail when asked to plan + implement + verify in one long autonomous chain.
 
