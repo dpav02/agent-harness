@@ -1,0 +1,17 @@
+# Hermes config fragment — merge into ~/.hermes/config.yaml
+# Models hit DGX Spark over Tailscale from hetzner-vps
+
+model:
+  default: qwen3.6-27b
+  provider: custom
+  base_url: http://100.106.140.112:8080/v1  # DGX Tailscale — adjust if IP changes
+
+# Knowledge bundle path (git-synced)
+# ~/dev/agent-harness/knowledge/
+
+agent:
+  max_turns: 60
+  verify_on_stop: false  # use verification-before-completion skill instead
+
+# Pipeline skills are on-demand via skill tool — not global SOUL rules
+# Deploy skills: cd ~/dev/agent-harness && ./install.sh --target hermes

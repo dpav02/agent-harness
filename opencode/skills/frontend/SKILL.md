@@ -7,6 +7,10 @@ description: Use when building or editing UI, React/Next components, Tailwind CS
 
 Frontend craft, WIG, React/Next perf, Tailwind v4.
 
+## Deep reference
+
+Load **knowledge-lookup** → [frontend-design](~/dev/agent-harness/knowledge/practices/frontend-design.md), [ui-ux](~/dev/agent-harness/knowledge/practices/ui-ux.md) before greenfield UI work.
+
 ## Ornith guardrails
 
 - One UI concern per turn when possible (layout, then states, then a11y).

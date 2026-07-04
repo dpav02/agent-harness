@@ -4,7 +4,8 @@
   "small_model": "dgx/qwen3.6-27b",
   "instructions": [
     "workflow-agents.md",
-    "testing-agents.md"
+    "testing-agents.md",
+    "planning-spec-driven.md"
   ],
   "compaction": {
     "auto": true,

@@ -7,6 +7,10 @@ description: Use when working with AWS IAM, Lambda, boto3, S3, DynamoDB, Bedrock
 
 IAM, Lambda, boto3, IaC, DynamoDB, S3, Bedrock. Match existing project patterns.
 
+## Deep reference
+
+Load **knowledge-lookup** → [Bedrock/DynamoDB/SST](~/dev/agent-harness/knowledge/apis/aws/bedrock-dynamodb-sst.md) for jobpriced-style stacks.
+
 ## Local-LLM guardrails
 
 - **Grep existing IAM policies** before adding actions or resources.

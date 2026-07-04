@@ -12,15 +12,19 @@ Loaded every session via `opencode.jsonc` — no invocation required:
 
 1. `workflow-agents.md` — ponytail, execution, debugging
 2. `testing-agents.md` — TDD, RED-GREEN-REFACTOR, test quality
+3. `planning-spec-driven.md` — when to plan, acceptance criteria, incremental delivery
 
 Project-root `AGENTS.md` wins for repo-specific stack details.
 
 ## Domain skills (load on demand)
 
-Use the `skill` tool when the task matches. One line per domain:
+Use the `skill` tool when the task matches:
 
 | Skill | Load when |
 |-------|-----------|
+| `knowledge-lookup` | Need API docs, practices, or model guardrails from OKF bundle |
+| `planner-packet` | Planning a feature for small-model execution (write task packet) |
+| `execute-spec` | Executing one AC from `.harness/task-packet.md` (scoped) |
 | `backend` | Python APIs, REST, auth, backend services |
 | `backend-ts` | TypeScript Lambda, SST, Node API handlers |
 | `database` | Schemas, migrations, ORM, SQL, Prisma |
@@ -30,6 +34,8 @@ Use the `skill` tool when the task matches. One line per domain:
 | `observability` | Logging, OTel, Sentry, Datadog |
 | `resilience` | Retries, backoff, circuit breakers, idempotency |
 | `frontend` | UI, React/Next, Tailwind, a11y, WIG |
+
+Knowledge bundle: `~/dev/agent-harness/knowledge/` (OKF v0.1).
 
 ## Verification is mandatory
 

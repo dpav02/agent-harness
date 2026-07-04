@@ -1,117 +1,74 @@
 # agent-harness
 
-Always-on agent rules for **OpenCode / DGX Spark (Qwen3.6-27B Prisma)** and **Cursor** — workflow, TDD, domain expertise, and frontend craft. Domain rules load on demand via OpenCode skills.
-
-## Where rules live (installed)
-
-| Tool | Install path | Mechanism |
-|------|--------------|-----------|
-| **OpenCode** | `~/.config/opencode/` | Always-on: `opencode.jsonc` → `instructions` + auto-loaded `AGENTS.md`. Domain: `skills/*/SKILL.md` via `skill` tool |
-| **Cursor** | `~/.cursor/rules/` | `alwaysApply: true` + glob-attached `.mdc` files |
-
-This repo is the **source of truth**. Install by copying or symlinking from here.
+Always-on agent rules and **OKF knowledge bundle** for **OpenCode**, **Cursor**, and **Hermes agent** — workflow, TDD, domain expertise, and supervised small-model execution (Qwen3.6-27B / Ornith on DGX via Tailscale).
 
 ## Layout
 
 ```
-opencode/
-  opencode.jsonc          # models, providers, compaction, instruction file list
-  AGENTS.md               # OpenCode index + skill trigger map
-  workflow-agents.md      # ponytail, verify-before-done, execution (always-on)
-  testing-agents.md       # TDD, RED-GREEN-REFACTOR (always-on)
-  skills/
-    backend/SKILL.md
-    backend-ts/SKILL.md
-    database/SKILL.md
-    aws/SKILL.md
-    docker/SKILL.md
-    messaging/SKILL.md
-    observability/SKILL.md
-    resilience/SKILL.md
-    frontend/SKILL.md
+knowledge/              # OKF v0.1 bundle — practices, APIs, workflows, models
+  index.md
+  practices/ apis/ workflows/ models/
 
-cursor/
-  agent-workflow.mdc      # alwaysApply — execution, verify-before-done
-  ponytail.mdc            # alwaysApply — lazy senior dev ladder
-  code-quality.mdc        # alwaysApply — intentional code, TS discipline
-  testing.mdc             # alwaysApply — TDD and test quality
-  planning-spec-driven.mdc
-  backend.mdc             # glob: Python, Docker, pyproject
-  backend-ts.mdc          # glob: TS server / SST
-  database.mdc
-  aws.mdc
-  docker.mdc
-  messaging.mdc
-  observability.mdc
-  resilience.mdc
-  frontend.mdc            # glob: TSX, JSX, CSS, Vue
+opencode/               # OpenCode config + skills
+  opencode.jsonc
+  planning-spec-driven.md
+  skills/               # domain + knowledge-lookup, planner-packet, execute-spec
+
+cursor/                 # Cursor .mdc rules
+
+hermes/                 # Hermes agent target
+  SOUL.md
+  config.example.yaml
+  skills/               # harvested devshop v1 + harness v2 skills
+
+scripts/
+  okf-lint.sh           # validate knowledge bundle
+
+examples/
+  e2e-sample-task-packet.md
+
+install.sh              # --target opencode|cursor|hermes|all
 ```
 
 ## Install
 
 ```bash
-# From a clone of this repo (copy):
-./install.sh
-
-# Symlink — stays in sync with git pull (recommended on your Mac):
+# Mac: OpenCode + Cursor
 ./install.sh --link
 
-# Or manually:
-cp opencode/AGENTS.md opencode/workflow-agents.md opencode/testing-agents.md opencode/opencode.jsonc ~/.config/opencode/
-cp -r opencode/skills/* ~/.config/opencode/skills/
-cp cursor/*.mdc ~/.cursor/rules/
+# Deploy Hermes skills to VPS (git pull + install on hetzner-vps)
+./install.sh --target hermes
+
+# All local targets
+./install.sh --link --target all
 ```
 
-Symlink instead of copy (stays in sync with git pull):
+VPS pattern: clone at `~/dev/agent-harness`, `git pull`, `./install.sh --target hermes`.
+
+## Harness v2 (supervised loop)
+
+1. **Planner** (Opus/Cursor): `planner-packet` skill → `.harness/task-packet.md`
+2. **Executor** (Qwen/Ornith): `execute-spec` — one AC per session, fail-stop, human gate
+3. **Knowledge**: `knowledge-lookup` skill — progressive disclosure, no vector RAG required
+4. **Fail-stop**: no auto-retry; user says `resume` or `retry`
+
+See [knowledge/workflows/agentic-loop-supervised.md](knowledge/workflows/agentic-loop-supervised.md) and [devshop v1 postmortem](knowledge/workflows/devshop-v1-learnings.md).
+
+## Models
+
+| Target | Model | Endpoint |
+|--------|-------|----------|
+| OpenCode (Mac) | `dgx/qwen3.6-27b` | `http://edgexpert-84c0:8080/v1` |
+| Hermes (VPS) | `qwen3.6-27b` | DGX Tailscale (see hermes/config.example.yaml) |
+
+## Verify
 
 ```bash
-ln -sf "$(pwd)/opencode/AGENTS.md" "$(pwd)/opencode/workflow-agents.md" "$(pwd)/opencode/testing-agents.md" "$(pwd)/opencode/opencode.jsonc" ~/.config/opencode/
-for d in opencode/skills/*/; do
-  name=$(basename "$d")
-  mkdir -p ~/.config/opencode/skills/"$name"
-  ln -sf "$(pwd)/$d/SKILL.md" ~/.config/opencode/skills/"$name"/
-done
-ln -sf "$(pwd)/cursor/"*.mdc ~/.cursor/rules/
+./scripts/okf-lint.sh
+opencode debug config   # after install
 ```
 
-**Note:** Edit `opencode.jsonc` `provider.dgx.options.baseURL` if your inference server is not `http://edgexpert-84c0:8080/v1`. Model IDs must match what your server reports at `/v1/models`.
+## Related repos
 
-## OpenCode load order
-
-**Always-on (~7KB):**
-
-1. `AGENTS.md` (auto-loaded)
-2. `workflow-agents.md`
-3. `testing-agents.md`
-
-**On demand:** domain skills in `~/.config/opencode/skills/` — agent loads via `skill({ name: "backend" })` when task matches. See skill index in `AGENTS.md`.
-
-Verify:
-
-```bash
-opencode debug config
-wc -c ~/.config/opencode/AGENTS.md ~/.config/opencode/workflow-agents.md ~/.config/opencode/testing-agents.md
-```
-
-## Models (DGX Spark)
-
-Default config in `opencode/opencode.jsonc` (Tailscale → `http://edgexpert-84c0:8080/v1`):
-
-| Key | Model | Role |
-|-----|-------|------|
-| `model` | `dgx/qwen3.6-27b` | Primary agent work (PrismaAURA vLLM) |
-| `small_model` | `dgx/qwen3.6-27b` | Titles, lightweight tasks |
-
-Mac preflight (from `spark_ops` repo): `bin/spark-opencode-check.sh --chat`
-
-Local inference timeouts: 600s request, 120s chunk. Compaction pruning enabled to save context on long sessions.
-
-## Cursor always-on vs globs
-
-**Always apply:** `agent-workflow`, `ponytail`, `code-quality`, `testing`
-
-**Glob-attached:** domain rules attach when you edit matching files (see frontmatter `globs` in each `.mdc`).
-
-## Related
-
-- Global dev index: `~/dev/AGENTS.md` (pointers to these paths; not duplicated here)
+- [spark_ops](https://github.com/dpav02/spark_ops) — DGX serve scripts, VPS `~/spark/` deploy source
+- Project repos: polymarket-trader, sol-wallet-scanner, jobpriced, tattoo_video_removal
