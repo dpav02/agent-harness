@@ -42,12 +42,14 @@ Base `deepreinforce-ai/Ornith-1.0-35B-FP8` (safety intact, `qwen3_xml` parser, D
 
 **Template overlay (negative result):** Prisma's template-v5 on ornith-base scored **82/100** — Structured Output dropped to 50%. Chat-template discipline blocks only help models fine-tuned against them. Serve each model with its trained template family; do not patch templates at serve time.
 
-## Updated routing
+## Updated routing (with noise bounds, Jul 4 evening)
+
+Tool-eval run-to-run noise measured at ~±2 points (Prisma Tier 1 n=2: 91, 93 → **~92 ± 2**). The ~6-point gap to ornith-base exceeds the noise band; rankings are solid. ornith-base speculative tokens raised 6 → 11: now **~93 tok/s** (was 79), output-lossless.
 
 | Role | Model |
 |------|-------|
-| execute-spec / tool-heavy | **qwen3.6-27b** (91/100) |
-| Latency-critical interactive | `ornith-base` (86/100, 2.2× faster) |
+| execute-spec / tool-heavy | **qwen3.6-27b** (~92 ± 2) |
+| Latency-critical interactive | `ornith-base` (86, ~93 tok/s — 2.6× faster) |
 | Uncensored only | AEON Ornith — never as executor |
 
 ## Related
