@@ -40,6 +40,8 @@ Production Prisma runs DFlash Tier 1: **+3 tool-eval points** (88 → 91) and **
 
 Base `deepreinforce-ai/Ornith-1.0-35B-FP8` (safety intact, `qwen3_xml` parser, DFlash) scored **86/100** at **~79 tok/s** — confirming the AEON abliteration caused the 78 (safety recovered 46% → 88%). Still 5 points below Prisma Tier 1's 91; weak on Structured Output (67%) and Hard Mode (77%).
 
+**Template overlay (negative result):** Prisma's template-v5 on ornith-base scored **82/100** — Structured Output dropped to 50%. Chat-template discipline blocks only help models fine-tuned against them. Serve each model with its trained template family; do not patch templates at serve time.
+
 ## Updated routing
 
 | Role | Model |
