@@ -52,6 +52,19 @@ Tool-eval run-to-run noise measured at ~±2 points (Prisma Tier 1 n=2: 91, 93 �
 | Latency-critical interactive | `ornith-base` (86, ~93 tok/s — 2.6× faster) |
 | Uncensored only | AEON Ornith — never as executor |
 
+## Wallet-scanner harness baseline (Jul 5 2026)
+
+First realistic execute-spec baseline on product code (not agent-harness smoke). Frozen packet: 2 ACs (health `rankable_candidates` + `MIN_MEDIAN_CLOSED_PNL` filter). Pin: sol-wallet-scanner `f67d3a0`, packet sha256 `af6450c6…`.
+
+| Metric | Prisma Tier 1 |
+|--------|---------------|
+| AC pass rate (n=2 runs × 2 AC) | **4/4** |
+| AC1 wall / tokens (range) | 106–259s / 531K–1.23M input |
+| AC2 wall / tokens (range) | 234–241s / 802K–1.01M input |
+| Full pytest after ACs | 139 passed |
+
+Improvement claims require re-running the **same frozen packet** with the same pins — not tool-eval deltas. Details: spark_ops `runs/2026/07/wallet-scanner-harness-baseline.md`.
+
 ## Related
 
 - [Tool-call patterns](tool-call-patterns.md)
