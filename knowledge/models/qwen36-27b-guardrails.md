@@ -25,6 +25,14 @@ Default model in OpenCode (`dgx/qwen3.6-27b`) and Hermes VPS config pointing at 
 
 ## Failure modes
 
+- **Multi-function tool_call → session death (top observed failure, davebench
+  2026-07-05).** The model emits several `<function=...>` blocks inside one
+  `<tool_call>`; vLLM's `qwen3_xml` streaming parser corrupts the deltas
+  (vllm#43713, ~7%/burst at temp 0.55-0.6) and OpenCode's openai-compatible
+  path dies on `Expected 'function.name' to be a string` (opencode#16488,
+  no repair/retry). Mitigations: one tool call per turn (always-on rule),
+  temp ≤0.3 for the build agent, `@ai-sdk/openai` provider npm, patched
+  qwen3xml parser plugin on the serve side.
 - Tool hallucination on unfamiliar APIs → link to [API concepts](../apis/index.md)
 - Plan drift on multi-step tasks → use [task packet](../workflows/spec-handoff.md) one AC at a time
 - Context overflow on long sessions → compaction enabled in opencode.jsonc; prefer grep-before-read

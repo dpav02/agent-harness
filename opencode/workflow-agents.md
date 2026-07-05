@@ -53,6 +53,11 @@ Follow **`testing-agents.md`** for RED-GREEN-REFACTOR on new behavior, bug fixes
 ## OpenCode / local LLM guardrails
 
 - One logical change per turn when possible.
+- **Emit exactly one tool call per assistant turn — never batch reads.** Parallel
+  tool-call bursts trigger the vLLM qwen3_xml streaming-parser bug (multiple
+  `<function=...>` in one `<tool_call>` → corrupt deltas → OpenCode session
+  death, `Expected 'function.name' to be a string`). Measured at ~7%/burst
+  (vllm#43713).
 - Context budget — prefer editing 1–3 files per task.
 - Load domain **skills** (see `AGENTS.md`) when the task needs specialized rules — don't guess domain conventions.
 - Spark/DGX defaults and auth env names from global `AGENTS.md` still apply.

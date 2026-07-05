@@ -29,7 +29,7 @@ timestamp: 2026-07-04T17:00:00Z
 
 | Pattern | Symptom | Fix |
 |---------|---------|-----|
-| Unbalanced JSON | Harness auto-repair, wasted turn | Count `{` `}` before emit |
+| Unbalanced JSON | Hermes: auto-repair, wasted turn. OpenCode: **session death** (no repair; opencode#16488) | Hermes: count `{` `}` before emit. OpenCode: parser-level fix, model can't prevent it |
 | Invented tool name | 404 / schema error | Re-list available tools |
 | Parallel burst | Partial failures on small models | Serialize calls |
 | Huge `read_file` | Context blow-up | Line range or grep first |

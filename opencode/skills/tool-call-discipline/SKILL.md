@@ -9,7 +9,7 @@ description: Tool-call reliability for local executor models — one call at a t
 
 1. **One tool at a time** when possible on 27–35B local models.
 2. **Schema-faithful** — only tool names and parameters from the active tool list.
-3. **Valid JSON** — balance braces/brackets; escape quotes in string values before emit.
+3. **Valid JSON** — balance braces/brackets; escape quotes in string values before emit. (Hermes-only rule: under OpenCode+vLLM the model emits XML and vLLM builds the JSON — malformation there is a parser bug, not a prompting fix.)
 4. **Knowledge first** — run **knowledge-lookup** before API/SDK tools to avoid hallucinated parameters.
 
 ## Related
