@@ -2,15 +2,18 @@
   "$schema": "https://opencode.ai/config.json",
   "model": "dgx/qwen3.6-27b",
   "small_model": "dgx/qwen3.6-27b",
-  "instructions": [
-    "workflow-agents.md",
-    "testing-agents.md",
-    "planning-spec-driven.md"
-  ],
+  // 2026-07-06 (davebench forensics): the three instruction files were proven
+  // behaviorally inert for qwen3.6-27b at ~2K tokens/step of context cost —
+  // slimmed to empty for the local-model daily driver. Restore the list when
+  // adding a frontier-model provider (instruction-following models use them).
+  // Was: ["workflow-agents.md", "testing-agents.md", "planning-spec-driven.md"]
+  "instructions": [],
   "compaction": {
     "auto": true,
-    "prune": true,
-    "reserved": 10000
+    // prune rewrites request history -> breaks vLLM prefix caching -> full
+    // re-prefill of a huge context at ~10 tok/s. Keep append-only.
+    "prune": false,
+    "reserved": 20000
   },
   "provider": {
     "dgx": {
