@@ -17,7 +17,7 @@ Create or update `.harness/task-packet.md` per spec-handoff format in agent-harn
 
 ## Required sections
 
-Goal, acceptance criteria (5–8), test paths, dependencies, out of scope, criterion status table.
+Goal, acceptance criteria (5–8), test paths, dependencies, out of scope, criterion status table (`| AC | Status | Red evidence | Notes |`, all `pending`, Red evidence empty).
 
 ## Rules
 
@@ -26,3 +26,5 @@ Goal, acceptance criteria (5–8), test paths, dependencies, out of scope, crite
 - UI: React/Vite — see frontend skill
 
 Load **knowledge-lookup** for domain API references.
+
+Hard/ambiguous packet? See agent-harness `knowledge/models/plan-stage-deliberation.md` — when Fusion/MoA one-shot pays off.

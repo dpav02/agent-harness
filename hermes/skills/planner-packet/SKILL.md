@@ -30,7 +30,13 @@ current_ac: 0
 4. Dependencies table or "None — template deps only"
 5. Out of scope
 6. Design direction (UI only)
-7. Criterion status table (all `pending`)
+7. Criterion status table (all `pending`, Red evidence column empty):
+
+```md
+| AC | Status | Red evidence | Notes |
+|----|--------|--------------|-------|
+| 1 | pending | | |
+```
 
 ## Rules
 
@@ -46,3 +52,5 @@ Packet file exists, passes human review, ready for `execute-spec`.
 ## Knowledge
 
 Load **knowledge-lookup** for API/practice references when planning domain features.
+
+Hard/ambiguous packet? See [plan-stage deliberation](~/dev/agent-harness/knowledge/models/plan-stage-deliberation.md) — when Fusion/MoA one-shot pays off.

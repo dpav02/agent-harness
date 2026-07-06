@@ -15,8 +15,9 @@ Lightweight test-first for small-model executor sessions.
 
 1. Read acceptance criteria in `.harness/task-packet.md` — each criterion maps to a test path.
 2. Add or adjust a failing test first; run once to confirm red.
-3. Write minimal code to green (apply ponytail).
-4. Do not delete working code and restart — fix forward.
+3. Record red evidence in the packet status table: command + `-> N failed`.
+4. Write minimal code to green (apply ponytail).
+5. Do not delete working code and restart — fix forward.
 
 ## On failure
 

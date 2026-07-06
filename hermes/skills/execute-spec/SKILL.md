@@ -20,10 +20,11 @@ description: Execute one acceptance criterion from .harness/task-packet.md — T
 1. Set AC status → `in-progress` in packet
 2. Read AC + test path only (not whole spec unless needed)
 3. **tdd-lite:** failing test first for new behavior
-4. Minimal implementation (ponytail)
-5. Run AC test path, then packet `check_command`
-6. On **green:** set AC → `done`, report summary, **halt** (wait for human approval)
-7. On **red after 3 fix attempts:** set AC → `failed`, write notes, **halt** — no auto-retry
+4. **Red evidence:** run the new test, confirm it fails, record command + failure summary in the packet's Red evidence column (e.g. `uv run pytest tests/test_x.py::test_y -> 1 failed`) BEFORE writing implementation code. Docs/config-only AC: write `n/a`
+5. Minimal implementation (ponytail)
+6. Run AC test path, then packet `check_command`
+7. On **green:** set AC → `done`, report summary including Red evidence AND fresh green output, **halt** (wait for human approval)
+8. On **red after 3 fix attempts:** set AC → `failed`, write notes, **halt** — no auto-retry
 
 ## Fail-stop
 
