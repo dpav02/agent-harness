@@ -25,6 +25,8 @@ current_ac: 0
 ---
 ```
 
+Optional key: `supervision: ac | packet` (default `ac`) — see [Supervision levels](agentic-loop-supervised.md).
+
 ## Body sections
 
 1. **Goal** — one paragraph, user-visible outcome
@@ -35,12 +37,14 @@ current_ac: 0
 6. **Design direction** — UI projects only (see [frontend-spec skill](../../hermes/skills/frontend-spec/SKILL.md))
 7. **Criterion status** — table updated by executor:
 
-| AC | Status | Notes |
-|----|--------|-------|
-| 1 | pending | |
-| 2 | pending | |
+| AC | Status | Red evidence | Notes |
+|----|--------|--------------|-------|
+| 1 | pending | | |
+| 2 | pending | | |
 
 Status values: `pending` | `in-progress` | `done` | `failed`
+
+**Red evidence:** exact test command + failure marker, filled by the executor BEFORE implementing, e.g. `uv run pytest tests/test_x.py::test_y -> 1 failed`. Status may not move to `done` unless Red evidence is filled for ACs that add behavior. Docs/config-only ACs write `n/a`.
 
 ## Sizing rules
 

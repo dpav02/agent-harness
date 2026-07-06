@@ -30,6 +30,21 @@ flowchart LR
 5. **Next AC** — fresh session or `resume` for next pending AC
 6. **On failure** — mark `failed`, halt; user chooses `retry` or edits packet
 
+## Supervision levels
+
+| Level | Gate | Eligibility |
+|-------|------|-------------|
+| **L0** (default) | Human gate after every AC — behavior above | Always |
+| **L1** (packet mode) | Proceed AC→AC without waiting; still fail-stop on any red; halt at packet end for one human review of whole diff + red/green evidence table | ≥90% first-attempt AC pass rate over last 20 benchmarked ACs for this packet type/repo (davebench / runs baselines in spark_ops) AND packet declares `supervision: packet` in frontmatter |
+| **L2** (PR mode) | Halt only at PR creation | Future — not enabled |
+
+Non-negotiables at every level:
+
+- Fail-stop never relaxed — no auto-retry, no watchdog re-queue ([devshop v1 learnings](devshop-v1-learnings.md))
+- Budget caps unchanged
+- Graduation changes approval FREQUENCY only
+- **Demotion:** any packet with 2+ failed ACs drops that repo back to L0
+
 ## Commands (user → agent)
 
 | Command | Meaning |
