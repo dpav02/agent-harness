@@ -1,7 +1,14 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "dgx/qwen3.6-27b",
-  "small_model": "dgx/qwen3.6-27b",
+  // 2026-07-17: default = 'dgx/spark-champ' — permanent served-name on spark1
+  // :8000 → :8888. Champ weight swaps stay behind that name.
+  // 2026-07-19: Lane B GLM selectable as dgx-glm/spark-glm52 (Mac → Tailscale
+  // spark3 :8000). Example: opencode run -m dgx-glm/spark-glm52 "..."
+  // 2026-07-19: Implementer pick ornith-35b selectable as dgx-ornith/ornith-35b
+  // (spark3 :8010, 262k + mmproj). Heretic A/B: dgx-ornith-heretic/ornith-heretic-35b
+  // (:8011, 131k). Default stays spark-champ.
+  "model": "dgx/spark-champ",
+  "small_model": "dgx/spark-champ",
   // 2026-07-06 (davebench forensics): the three instruction files were proven
   // behaviorally inert for qwen3.6-27b at ~2K tokens/step of context cost —
   // slimmed to empty for the local-model daily driver. Restore the list when
@@ -18,19 +25,92 @@
   "provider": {
     "dgx": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "DGX Spark (Qwen3.6-27B PrismaAURA)",
+      "name": "DGX Spark (stable :8000 alias -> live backend)",
       "options": {
-        "baseURL": "http://edgexpert-84c0:8080/v1",
+        "baseURL": "http://edgexpert-84c0:8000/v1",
         "apiKey": "local",
         "timeout": 600000,
         "chunkTimeout": 120000
       },
       "models": {
-        "qwen3.6-27b": {
-          "name": "Qwen3.6-27B PrismaAURA",
+        "spark-champ": {
+          "name": "spark-champ (stable alias -> live davebench champ; now dsv4-abliterated-k5, 1M ctx, MTP n=5)",
+          "limit": {
+            "context": 1048576,
+            "output": 8192
+          }
+        },
+        "a3b-q8-mtp": {
+          "name": "Qwen3.6-35B-A3B Q8+MTP (playoff champ 0.886 @ 85 tok/s) — DOWN until queue-end restore",
           "limit": {
             "context": 262144,
             "output": 8192
+          }
+        }
+      }
+    },
+    "dgx-glm": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "DGX Spark Lane B (GLM-5.2 2-bit TP2)",
+      "options": {
+        "baseURL": "http://spark-3984:8000/v1",
+        "apiKey": "local",
+        "timeout": 600000,
+        "chunkTimeout": 120000
+      },
+      "models": {
+        "spark-glm52": {
+          "name": "spark-glm52 (GLM-5.2 2-bit pruned-208 TP2 Checkpoint-1, ~15 t/s, 8K ctx)",
+          "limit": {
+            "context": 8192,
+            "output": 4096
+          }
+        }
+      }
+    },
+    "dgx-ornith": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "DGX Spark3 Ornith implementer (llama.cpp :8010)",
+      "options": {
+        "baseURL": "http://spark-3984:8010/v1",
+        "apiKey": "local",
+        "timeout": 600000,
+        "chunkTimeout": 120000
+      },
+      "models": {
+        "ornith-35b": {
+          "name": "ornith-35b (APEX-I-Quality MTP n=2, 262k ctx, mmproj vision, think off)",
+          "limit": {
+            "context": 262144,
+            "output": 8192
+          },
+          "modalities": {
+            "input": ["text", "image"],
+            "output": ["text"]
+          }
+        }
+      }
+    },
+    // 2026-07-19: Ornith×Heretic A/B on spark3 :8011 (131k). Selectable only.
+    "dgx-ornith-heretic": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "DGX Spark3 Ornith-Heretic (llama.cpp :8011)",
+      "options": {
+        "baseURL": "http://spark-3984:8011/v1",
+        "apiKey": "local",
+        "timeout": 600000,
+        "chunkTimeout": 120000
+      },
+      "models": {
+        "ornith-heretic-35b": {
+          "name": "ornith-heretic-35b (Heretic Trial63 APEX-I-Quality MTP n=2, 131k, mmproj, think off)",
+          "limit": {
+            "context": 131072,
+            "output": 8192
+          },
+          "modalities": {
+            "input": ["text", "image"],
+            "output": ["text"]
           }
         }
       }
