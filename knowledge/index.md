@@ -8,8 +8,11 @@ Curated concepts for OpenCode and Hermes agent working with small local models (
 
 ## Practices
 
-* [Frontend design](practices/frontend-design.md) - Distinctive UI craft, anti-slop, Tailwind v4
-* [UI/UX](practices/ui-ux.md) - Hierarchy, cognitive load, accessibility defaults
+* [Frontend design](practices/frontend-design.md) - Distinctive UI craft, typography, color, motion, anti-slop
+* [UI/UX](practices/ui-ux.md) - Hierarchy, cognitive load, IA, UX writing, accessibility defaults
+* [Frontend WIG](practices/frontend-wig.md) - Accessibility, forms, focus, touch, intl mechanics
+* [Frontend React/Next](practices/frontend-react.md) - React rules, App Router, performance, component architecture
+* [Frontend Tailwind](practices/frontend-tailwind.md) - Tailwind v4, styling stack, CSS, layout mechanics
 * [Testing](practices/testing.md) - TDD, behavioral tests, RED-GREEN-REFACTOR
 * [Observability](practices/observability.md) - Logging, metrics, tracing, error reporting
 * [Resilience](practices/resilience.md) - Retries, backoff, circuit breakers, idempotency

@@ -2,8 +2,11 @@
 
 Production-grade engineering concepts for agent-assisted development.
 
-* [Frontend design](frontend-design.md) - Distinctive UI, anti-AI-slop, Tailwind v4 craft
-* [UI/UX](ui-ux.md) - Visual hierarchy, cognitive load, responsive and a11y defaults
+* [Frontend design](frontend-design.md) - Distinctive UI, typography, color, motion, anti-AI-slop
+* [UI/UX](ui-ux.md) - Visual hierarchy, cognitive load, IA, UX writing, a11y defaults
+* [Frontend WIG](frontend-wig.md) - Accessibility, forms, focus, touch, intl mechanics
+* [Frontend React/Next](frontend-react.md) - React rules, App Router, performance, components
+* [Frontend Tailwind](frontend-tailwind.md) - Tailwind v4, styling stack, CSS, layout mechanics
 * [Testing](testing.md) - TDD, meaningful assertions, regression tests
 * [Observability](observability.md) - Structured logging, metrics, tracing, Sentry
 * [Resilience](resilience.md) - Retries with backoff, circuit breakers, idempotency keys
