@@ -1,48 +1,72 @@
 ---
 type: practice
 title: Frontend design
-description: Production UI craft — distinctive design, anti-slop, Tailwind v4, component patterns
-tags: [frontend, react, tailwind, design, ui]
-timestamp: 2026-07-04T16:00:00Z
+description: Distinctive UI craft — design direction, typography, color, motion, anti-slop
+tags: [frontend, design, typography, color, motion, ui]
+timestamp: 2026-07-19T00:00:00Z
 resource: https://github.com/anthropics/skills/blob/main/skills/frontend-design/SKILL.md
 ---
 
 # Frontend design
 
-Distilled from Anthropic frontend-design skill, Vercel agent-resources, and devshop frontend-craft/review skills.
+Distinctive visual craft. Load for greenfield UI, redesigns, or any "make this look intentional" task.
 
 ## Core principles
 
-1. **Match spec tone** — read Design direction in task packet; do not invent a different product aesthetic
-2. **Anti-AI-slop** — avoid centered single-card hero as entire app, purple gradient soup, Inter-only generic SaaS, decorative blobs without purpose
-3. **Real states** — empty, loading, error for every user workflow; not just happy path
-4. **One polished workflow** over many shallow components
+1. **Match spec tone** — read Design direction in the task packet; do not invent a different aesthetic.
+2. **Real states** — empty, loading, error for every workflow, not just the happy path.
+3. **One polished workflow** over many shallow components.
 
-## Stack defaults (this workspace)
+## Design direction (greenfield — commit before coding)
 
-- React 19 + Vite + Tailwind v4
-- Utilities in `className`; `@theme inline` for tokens; no inline styles except dynamic values
-- Prefer template Tailwind stack; no shadcn/MUI unless spec authorizes
+- **Purpose** — who uses this and why.
+- **Tone** — deliberate aesthetic (minimal, editorial, utilitarian, bold), not default SaaS chrome.
+- **Constraints** — framework, a11y, performance, existing tokens.
+- **Differentiation** — one memorable choice; intentional asymmetry or typography beats template layouts.
+- Existing codebase: extend components/tokens/patterns — no unprompted redesign. Read `.impeccable.md` / `DESIGN.md` / `PRODUCT.md` when present.
 
-## Layout hardening
+## Anti-AI-slop
 
-- Flex/grid children that truncate: `min-w-0`
-- Long strings: wrap or truncate; accessible tooltips only when needed
-- Buttons/links: visible accessible names — not icon-only without `aria-label`
+Bans (the fingerprints of generated work):
 
-## Responsive and a11y
+- Gradient text (`background-clip: text`); side-stripe accent borders (>1px on one side).
+- Identical icon+title+body card grids; card-wrapping everything; nested cards.
+- Purple-on-dark / neon-on-dark / cyan-on-dark palette; dark mode with glowing accents as the default.
+- Centered-everything; a single centered hero card as the whole app.
+- Inter/Roboto/Arial as a greenfield identity; decorative blobs; hand-drawn/sketchy SVG.
+- Tiny uppercase tracked eyebrow above every section; 01/02/03 numbered scaffolding as default.
 
-- Mobile-first; test sm/md breakpoints
-- WCAG AA default: keyboard nav, form labels, contrast on risky UI
-- Respect `prefers-reduced-motion` for interaction tests
+## Typography
 
-## Testing UI
+- Clear hierarchy; fluid sizing (`clamp`) where appropriate; `text-wrap: balance` on headings, `pretty` on prose.
+- Pair a distinctive display font with a refined body; avoid overused defaults as a greenfield identity — defer to repo fonts when set.
+- Display heading ceiling ~6rem; letter-spacing floor ≥ -0.04em. Body line length 65–75ch.
+- Tabular figures (`tabular-nums`) for money/metrics. No monospace for "tech vibe" alone.
+- `…` not `...`; curly quotes in prose.
 
-- Test user workflows from acceptance criteria, not only "renders without crash"
-- Prefer Testing Library: `getByRole`, `getByLabelText`, `getByText`
+## Color and theme
+
+- Pick a strategy first: restrained (neutrals + one accent ≤10%), committed (one color 30–60%), full palette (3–4 roles), or drenched.
+- OKLCH / tokens / `color-mix` when the stack supports it.
+- No gray-on-color washout; no pure `#000`/`#fff` when tokens exist — always tint. Nudge neutrals 0.005–0.015 chroma toward the brand hue.
+- Reject the clichéd AI palette unless the brand requires it.
+- Dark mode: `color-scheme: dark` on `html`; theme-color meta matches background.
+
+## Motion
+
+- Animate **transform** and **opacity** only — not width/height/margin.
+- Natural deceleration (ease-out); no bounce/elastic on product UI. No `transition: all` — list properties explicitly.
+- `prefers-reduced-motion`: reduced variant or disable — not optional.
+- One orchestrated entrance beats scattered trivial animations; staggering one list is fine.
+
+## Layout rhythm
+
+- Tight groups, clear separations — not identical padding everywhere.
+- Intentional asymmetry over center-everything; container queries for component responsiveness.
+- Flex for 1D, grid for 2D; `repeat(auto-fit, minmax(280px, 1fr))` for breakpoint-free grids.
 
 ## Related
 
 - [UI/UX](ui-ux.md)
-- [Testing](testing.md)
-- [frontend-craft skill](../../hermes/skills/frontend-craft/SKILL.md)
+- [Frontend WIG](frontend-wig.md)
+- [Frontend Tailwind](frontend-tailwind.md)
