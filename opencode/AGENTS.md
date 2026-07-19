@@ -1,67 +1,28 @@
 # Global AGENTS.md (OpenCode)
 
-These instructions apply across OpenCode sessions unless a repository-level `AGENTS.md` overrides them.
+Applies across OpenCode sessions unless a repo-level `AGENTS.md` overrides. Repo-root `AGENTS.md` wins for stack details.
 
-## Who you are helping
+## Hard constraints
 
-Experienced full-stack founder/developer. Prefer direct, high-signal guidance over tutorials.
+- **One tool call per turn** when possible — parallel bursts raise malformed JSON on 27–35B locals.
+- **Verify before claiming.** Name the claim → run the command that proves it → report exit code + output. Never guess file contents, test results, or deploy state.
+- **Read before write; grep callers before changing a shared function.** Smallest diff that fixes root cause — no drive-by refactors.
+- Context budget: 1–3 files/turn, one logical change/turn.
 
-## Always-on instruction files
+## Skills (load on demand via `skill` tool)
 
-Loaded every session via `opencode.jsonc` — no invocation required:
+`knowledge-lookup` (API docs / practices / model guardrails — OKF `~/dev/agent-harness/knowledge/`) · `planner-packet` (write task packet) · `execute-spec` (run one AC, scoped) · `backend` · `backend-ts` · `database` · `aws` · `docker` · `messaging` · `observability` · `resilience` · `frontend`.
 
-1. `workflow-agents.md` — ponytail, execution, debugging
-2. `testing-agents.md` — TDD, RED-GREEN-REFACTOR, test quality
-3. `planning-spec-driven.md` — when to plan, acceptance criteria, incremental delivery
+## Goal execution
 
-Project-root `AGENTS.md` wins for repo-specific stack details.
-
-## Domain skills (load on demand)
-
-Use the `skill` tool when the task matches:
-
-| Skill | Load when |
-|-------|-----------|
-| `knowledge-lookup` | Need API docs, practices, or model guardrails from OKF bundle |
-| `planner-packet` | Planning a feature for small-model execution (write task packet) |
-| `execute-spec` | Executing one AC from `.harness/task-packet.md` (scoped) |
-| `backend` | Python APIs, REST, auth, backend services |
-| `backend-ts` | TypeScript Lambda, SST, Node API handlers |
-| `database` | Schemas, migrations, ORM, SQL, Prisma |
-| `aws` | IAM, Lambda, boto3, S3, DynamoDB, Bedrock, IaC |
-| `docker` | Dockerfiles, compose, containers |
-| `messaging` | Celery, RabbitMQ, SQS, Kafka, queues |
-| `observability` | Logging, OTel, Sentry, Datadog |
-| `resilience` | Retries, backoff, circuit breakers, idempotency |
-| `frontend` | UI, React/Next, Tailwind, a11y, WIG |
-
-Knowledge bundle: `~/dev/agent-harness/knowledge/` (OKF v0.1).
-
-## Verification is mandatory
-
-Before claiming success:
-
-1. Name the claim (tests pass, migration OK, endpoint works).
-2. Run the command that proves it.
-3. Report exit code and output summary.
-
-Do not guess file contents, test results, or deploy state.
+- **Multi-AC feature** → `planner-packet`, then `execute-spec`: one AC per session, human gate between ACs, fail-stop (`knowledge/workflows/agentic-loop-supervised.md`).
+- **Single bounded chore** → `/loop-goal --acceptance "…" --check "<verify cmd>" --complete-when-checks-pass`. Always pass a check command; never mark complete without fresh green output. (`/goal` was removed — its auto-continue-until-complete prompt drifts on these locals.)
 
 ## Spark / DGX defaults
 
-- Live inference and deployed runtimes for `spark_ops`, Gemma, Open WebUI, and related stack run on **DGX Spark** (`edgexpert-84c0` / `edgexpert-84c0.local`) — not the local macOS machine unless the user says otherwise.
-- When changing live Spark services: sync repo to DGX checkout and apply the restart/deploy the project expects.
-- Model auth env names: `HF_TOKEN`, `CIVITAI_API_KEY` only — no aliases.
+- Live inference for `spark_ops`, Gemma, Open WebUI runs on **DGX Spark** (`edgexpert-84c0`), not local macOS unless told otherwise. Changing live services: sync repo → DGX checkout, apply the restart the project expects.
+- Model auth env: `HF_TOKEN`, `CIVITAI_API_KEY` only — no aliases.
 
-## Working style
+## Cursor
 
-- Read before write; grep callers before changing shared functions.
-- Smallest diff that fixes root cause — no drive-by refactors.
-- Ask when auth, migrations, or cross-service deploy are ambiguous.
-- Local LLM context budget: prefer 1–3 files per turn; one logical change per turn.
-
-## Cursor equivalents
-
-When using Cursor instead of OpenCode: `~/.cursor/rules/` — see repo `cursor/` directory.
-
-Global dev index: `~/dev/AGENTS.md`
+Cursor equivalent rules: `~/.cursor/rules/` (repo `cursor/`). Global dev index: `~/dev/AGENTS.md`.

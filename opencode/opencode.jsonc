@@ -1,14 +1,11 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  // 2026-07-17: default = 'dgx/spark-champ' — permanent served-name on spark1
-  // :8000 → :8888. Champ weight swaps stay behind that name.
-  // 2026-07-19: Lane B GLM selectable as dgx-glm/spark-glm52 (Mac → Tailscale
-  // spark3 :8000). Example: opencode run -m dgx-glm/spark-glm52 "..."
-  // 2026-07-19: Implementer pick ornith-35b selectable as dgx-ornith/ornith-35b
-  // (spark3 :8010, 262k + mmproj). Heretic A/B: dgx-ornith-heretic/ornith-heretic-35b
-  // (:8011, 131k). Default stays spark-champ.
-  "model": "dgx/spark-champ",
-  "small_model": "dgx/spark-champ",
+  // Thinking: sibling model IDs (not Ctrl+t variants — openai-compatible does not
+  // reliably forward chat_template_kwargs via variants). Selectable:
+  // dsv4-flash-ablit-thinking, ornith-35b-thinking, ornith-heretic-35b-thinking.
+  // Implementer: dgx-ornith/* (:8010). Heretic: dgx-ornith-heretic/* (:8011).
+  "model": "dgx/dsv4-flash-ablit",
+  "small_model": "dgx/dsv4-flash-ablit",
   // 2026-07-06 (davebench forensics): the three instruction files were proven
   // behaviorally inert for qwen3.6-27b at ~2K tokens/step of context cost —
   // slimmed to empty for the local-model daily driver. Restore the list when
@@ -22,6 +19,12 @@
     "prune": false,
     "reserved": 20000
   },
+  // Goal system: standardized on /loop-goal (plugins/opencode-loop.ts, auto-loaded
+  // from the plugins dir — do not also list @bybrawe/opencode-loop here). opencode-goal
+  // (/goal) removed 2026-07-19: its auto-continue-until-complete prompt fights the
+  // supervised fail-stop loop these locals need (small-model-prompting.md). Do not
+  // re-add. The auto-update plugin lives in the machine-managed opencode.json.
+  "plugin": [],
   "provider": {
     "dgx": {
       "npm": "@ai-sdk/openai-compatible",
@@ -33,11 +36,29 @@
         "chunkTimeout": 120000
       },
       "models": {
-        "spark-champ": {
-          "name": "spark-champ (stable alias -> live davebench champ; now dsv4-abliterated-k5, 1M ctx, MTP n=5)",
+        "dsv4-flash-ablit": {
+          "name": "dsv4-flash-ablit (abliterated DSV4 k=5, 1M ctx, MTP n=5, think off)",
           "limit": {
             "context": 1048576,
             "output": 8192
+          },
+          "options": {
+            "chat_template_kwargs": {
+              "thinking": false
+            }
+          }
+        },
+        "dsv4-flash-ablit-thinking": {
+          "name": "dsv4-flash-ablit-thinking (same :8000; think on + reasoning_effort=high)",
+          "limit": {
+            "context": 1048576,
+            "output": 8192
+          },
+          "options": {
+            "chat_template_kwargs": {
+              "thinking": true,
+              "reasoning_effort": "high"
+            }
           }
         },
         "a3b-q8-mtp": {
@@ -60,7 +81,7 @@
       },
       "models": {
         "spark-glm52": {
-          "name": "spark-glm52 (GLM-5.2 2-bit pruned-208 TP2 Checkpoint-1, ~15 t/s, 8K ctx)",
+          "name": "spark-glm52 (GLM-5.2 2-bit pruned-208 TP2 Checkpoint-1, ~15 t/s, 8K ctx) — DOWN",
           "limit": {
             "context": 8192,
             "output": 4096
@@ -87,6 +108,27 @@
           "modalities": {
             "input": ["text", "image"],
             "output": ["text"]
+          },
+          "options": {
+            "chat_template_kwargs": {
+              "enable_thinking": false
+            }
+          }
+        },
+        "ornith-35b-thinking": {
+          "name": "ornith-35b-thinking (same :8010; enable_thinking on)",
+          "limit": {
+            "context": 262144,
+            "output": 8192
+          },
+          "modalities": {
+            "input": ["text", "image"],
+            "output": ["text"]
+          },
+          "options": {
+            "chat_template_kwargs": {
+              "enable_thinking": true
+            }
           }
         }
       }
@@ -111,6 +153,22 @@
           "modalities": {
             "input": ["text", "image"],
             "output": ["text"]
+          }
+        },
+        "ornith-heretic-35b-thinking": {
+          "name": "ornith-heretic-35b-thinking (same :8011; enable_thinking on)",
+          "limit": {
+            "context": 131072,
+            "output": 8192
+          },
+          "modalities": {
+            "input": ["text", "image"],
+            "output": ["text"]
+          },
+          "options": {
+            "chat_template_kwargs": {
+              "enable_thinking": true
+            }
           }
         }
       }
