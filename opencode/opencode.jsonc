@@ -1,11 +1,12 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  // Thinking: sibling model IDs (not Ctrl+t variants — openai-compatible does not
-  // reliably forward chat_template_kwargs via variants). Selectable:
-  // dsv4-flash-ablit-thinking, ornith-35b-thinking, ornith-heretic-35b-thinking.
-  // Implementer: dgx-ornith/* (:8010). Heretic: dgx-ornith-heretic/* (:8011).
-  "model": "dgx/dsv4-flash-ablit",
-  "small_model": "dgx/dsv4-flash-ablit",
+  // GA 0731 era (2026-07-31): DeepSeek V4 Flash official weights, served as
+  // dsv4-flash on spark1:8888 (+ :8000 alias). Reasoning effort = sibling
+  // model ids via the fleet proxy (NOT Ctrl+t variants — openai-compatible
+  // does not reliably forward chat_template_kwargs via variants):
+  //   fleet/dsv4-flash-high (default) · -low · -max · bare = no thinking.
+  "model": "fleet/dsv4-flash-high",
+  "small_model": "dgx/dsv4-flash",
   // 2026-07-06 (davebench forensics): the three instruction files were proven
   // behaviorally inert for qwen3.6-27b at ~2K tokens/step of context cost —
   // slimmed to empty for the local-model daily driver. Restore the list when
@@ -36,78 +37,97 @@
         "chunkTimeout": 120000
       },
       "models": {
-        "dsv4-flash-ablit": {
-          "name": "dsv4-flash-ablit (abliterated DSV4 k=5, 1M ctx, MTP n=5, think off)",
+        "dsv4-flash": {
+          "name": "DSV4 Flash GA 0731 direct (1M ctx, no thinking — escape hatch when VPS proxy is down)",
+          "modalities": {
+            "input": ["text"],
+            "output": ["text"]
+          },
+          // limit.output is schema-required by opencode >=1.18.x. 32000 ==
+          // opencode's own internal cap (min(limit.output, 32000)), so this
+          // is a no-op, not a regression to the prompt-room-stealing bug.
           "limit": {
             "context": 1048576,
-            "output": 8192
-          },
-          "options": {
-            "chat_template_kwargs": {
-              "thinking": false
-            }
-          }
-        },
-        "dsv4-flash-ablit-thinking": {
-          "name": "dsv4-flash-ablit-thinking (same :8000; think on + reasoning_effort=high)",
-          "limit": {
-            "context": 1048576,
-            "output": 8192
-          },
-          "options": {
-            "chat_template_kwargs": {
-              "thinking": true,
-              "reasoning_effort": "high"
-            }
-          }
-        },
-        "a3b-q8-mtp": {
-          "name": "Qwen3.6-35B-A3B Q8+MTP (playoff champ 0.886 @ 85 tok/s) — DOWN until queue-end restore",
-          "limit": {
-            "context": 262144,
-            "output": 8192
+            "output": 32000
           }
         }
       }
     },
-    "dgx-glm": {
+    "fleet": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "DGX Spark Lane B (GLM-5.2 2-bit TP2)",
+      // sparkfleet model proxy on the Hermes VPS: /v1/models = whatever the
+      // deployment catalog is serving RIGHT NOW; routes by model id and
+      // merges chat_template_kwargs for the effort aliases server-side. A
+      // model whose deployment is stopped 404s here with the live list —
+      // start it from the sparkfleet dash (:8090 Deploys) first.
+      "name": "Spark Fleet (live models via proxy)",
       "options": {
-        "baseURL": "http://spark-3984:8000/v1",
+        "baseURL": "http://100.124.23.17:8100/v1",
         "apiKey": "local",
         "timeout": 600000,
         "chunkTimeout": 120000
       },
       "models": {
-        "spark-glm52": {
-          "name": "spark-glm52 (GLM-5.2 2-bit pruned-208 TP2 Checkpoint-1, ~15 t/s, 8K ctx) — DOWN",
-          "limit": {
-            "context": 8192,
-            "output": 4096
-          }
-        }
-      }
-    },
-    "dgx-ornith": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "DGX Spark3 Ornith implementer (llama.cpp :8010)",
-      "options": {
-        "baseURL": "http://spark-3984:8010/v1",
-        "apiKey": "local",
-        "timeout": 600000,
-        "chunkTimeout": 120000
-      },
-      "models": {
-        "ornith-35b": {
-          "name": "ornith-35b (APEX-I-Quality MTP n=2, 262k ctx, mmproj vision, think off)",
-          "limit": {
-            "context": 262144,
-            "output": 8192
+        "dsv4-flash-high": {
+          "name": "DSV4 Flash GA · high reasoning (fleet default)",
+          "modalities": {
+            "input": ["text"],
+            "output": ["text"]
           },
+          "limit": {
+            "context": 1048576,
+            "output": 32000
+          }
+        },
+        "dsv4-flash-low": {
+          "name": "DSV4 Flash GA · low reasoning (brief thinking)",
+          "modalities": {
+            "input": ["text"],
+            "output": ["text"]
+          },
+          "limit": {
+            "context": 1048576,
+            "output": 32000
+          }
+        },
+        "dsv4-flash-max": {
+          "name": "DSV4 Flash GA · max reasoning (exhaustive, slow)",
+          "modalities": {
+            "input": ["text"],
+            "output": ["text"]
+          },
+          "limit": {
+            "context": 1048576,
+            "output": 32000
+          }
+        },
+        "dsv4-flash": {
+          "name": "DSV4 Flash GA · fast (no thinking) via proxy",
+          "modalities": {
+            "input": ["text"],
+            "output": ["text"]
+          },
+          "limit": {
+            "context": 1048576,
+            "output": 32000
+          }
+        },
+        "glm-5.2": {
+          "name": "GLM-5.2 NVFP4+AQLM TP3 (3x Spark ring, 348k ctx, vision — start its lane from the dash first)",
+          // custom openai-compatible providers aren't in opencode's model
+          // catalog, so it can't auto-detect capabilities and defaults to
+          // text-only, replacing image parts with an "ERROR: Cannot read..."
+          // text note even though vLLM/GLM-5.2 accepts them. The real gate
+          // (verified in the 1.18.9 bundle) is capabilities.input.image,
+          // driven by modalities.input — attachment alone is NOT enough.
+          "attachment": true,
           "modalities": {
             "input": ["text", "image"],
             "output": ["text"]
+          },
+          "limit": {
+            "context": 348160,
+            "output": 32000
           },
           "options": {
             "chat_template_kwargs": {
@@ -115,60 +135,28 @@
             }
           }
         },
-        "ornith-35b-thinking": {
-          "name": "ornith-35b-thinking (same :8010; enable_thinking on)",
+        "ornith-35b": {
+          "name": "Ornith 1.0 35B APEX (spark4 pair, 262k ctx, vision)",
+          "attachment": true,
+          "modalities": {
+            "input": ["text", "image"],
+            "output": ["text"]
+          },
           "limit": {
             "context": 262144,
-            "output": 8192
-          },
-          "modalities": {
-            "input": ["text", "image"],
-            "output": ["text"]
-          },
-          "options": {
-            "chat_template_kwargs": {
-              "enable_thinking": true
-            }
-          }
-        }
-      }
-    },
-    // 2026-07-19: Ornith×Heretic A/B on spark3 :8011 (131k). Selectable only.
-    "dgx-ornith-heretic": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "DGX Spark3 Ornith-Heretic (llama.cpp :8011)",
-      "options": {
-        "baseURL": "http://spark-3984:8011/v1",
-        "apiKey": "local",
-        "timeout": 600000,
-        "chunkTimeout": 120000
-      },
-      "models": {
-        "ornith-heretic-35b": {
-          "name": "ornith-heretic-35b (Heretic Trial63 APEX-I-Quality MTP n=2, 131k, mmproj, think off)",
-          "limit": {
-            "context": 131072,
-            "output": 8192
-          },
-          "modalities": {
-            "input": ["text", "image"],
-            "output": ["text"]
+            "output": 32000
           }
         },
-        "ornith-heretic-35b-thinking": {
-          "name": "ornith-heretic-35b-thinking (same :8011; enable_thinking on)",
-          "limit": {
-            "context": 131072,
-            "output": 8192
-          },
+        "ornith-heretic-35b": {
+          "name": "Ornith 1.0 35B Heretic APEX (spark4 pair, 131k ctx, vision)",
+          "attachment": true,
           "modalities": {
             "input": ["text", "image"],
             "output": ["text"]
           },
-          "options": {
-            "chat_template_kwargs": {
-              "enable_thinking": true
-            }
+          "limit": {
+            "context": 131072,
+            "output": 32000
           }
         }
       }
