@@ -48,7 +48,7 @@
           // is a no-op, not a regression to the prompt-room-stealing bug.
           "limit": {
             "context": 1048576,
-            "output": 32000
+            "output": 393216
           }
         }
       }
@@ -74,9 +74,15 @@
             "input": ["text"],
             "output": ["text"]
           },
+          // 393216 (not 32000): the opencode-internal 32K step clamp is
+          // binary-patched out (1e300), so limit.output is now the REAL
+          // per-step ceiling. 384K = DeepSeek's recommended max-effort output
+          // budget; the anemll build is a strict renderer (400s when
+          // prompt + max_tokens > 1M ctx), so leave prompt room — do not
+          // set this to 1048576.
           "limit": {
             "context": 1048576,
-            "output": 32000
+            "output": 393216
           }
         },
         "dsv4-flash-low": {
@@ -87,7 +93,7 @@
           },
           "limit": {
             "context": 1048576,
-            "output": 32000
+            "output": 393216
           }
         },
         "dsv4-flash-max": {
@@ -98,7 +104,7 @@
           },
           "limit": {
             "context": 1048576,
-            "output": 32000
+            "output": 393216
           }
         },
         "dsv4-flash": {
@@ -109,7 +115,7 @@
           },
           "limit": {
             "context": 1048576,
-            "output": 32000
+            "output": 393216
           }
         },
         "glm-5.2": {
