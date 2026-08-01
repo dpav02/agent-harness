@@ -118,29 +118,10 @@
             "output": 393216
           }
         },
-        "glm-5.2": {
-          "name": "GLM-5.2 NVFP4+AQLM TP3 (3x Spark ring, 348k ctx, vision — start its lane from the dash first)",
-          // custom openai-compatible providers aren't in opencode's model
-          // catalog, so it can't auto-detect capabilities and defaults to
-          // text-only, replacing image parts with an "ERROR: Cannot read..."
-          // text note even though vLLM/GLM-5.2 accepts them. The real gate
-          // (verified in the 1.18.9 bundle) is capabilities.input.image,
-          // driven by modalities.input — attachment alone is NOT enough.
-          "attachment": true,
-          "modalities": {
-            "input": ["text", "image"],
-            "output": ["text"]
-          },
-          "limit": {
-            "context": 348160,
-            "output": 32000
-          },
-          "options": {
-            "chat_template_kwargs": {
-              "enable_thinking": false
-            }
-          }
-        },
+        // glm-5.2 entry removed 2026-08-01 (lane parked; ghosts in the picker
+        // confused more than they helped). To re-add when the GLM lane runs:
+        // vision gate is modalities.input (attachment alone is NOT enough),
+        // ctx 348160, options.chat_template_kwargs.enable_thinking=false.
         "ornith-35b": {
           "name": "Ornith 1.0 35B APEX (spark4 pair, 262k ctx, vision)",
           "attachment": true,
